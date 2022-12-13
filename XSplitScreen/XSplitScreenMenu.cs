@@ -214,6 +214,13 @@ namespace DoDad.XSplitScreen.Components
             discordButton.defaultFallbackButton = false;
             // assignment
 
+            XButtonConverter patreonButton = CreateButton("Patreon");
+            patreonButton.Initialize();
+
+            patreonButton.token = XSplitScreen.Language.MSG_PATREON_LINK_TOKEN;
+            patreonButton.onClickMono.AddListener(OnClickVisitPatreon);
+            patreonButton.defaultFallbackButton = false;
+
             template = MainMenuController.instance.profileMenuScreen.transform.GetChild(0).gameObject;
 
             assignmentWindow = Instantiate(template, transform).GetComponent<RectTransform>();
@@ -282,6 +289,10 @@ namespace DoDad.XSplitScreen.Components
         private static void OnClickJoinDiscord(MonoBehaviour mono)
         {
             Application.OpenURL(XSplitScreen.Language.MSG_DISCORD_LINK_HREF);
+        }
+        private static void OnClickVisitPatreon(MonoBehaviour mono)
+        {
+            Application.OpenURL(XSplitScreen.Language.MSG_PATREON_LINK_HREF);
         }
         #endregion
 

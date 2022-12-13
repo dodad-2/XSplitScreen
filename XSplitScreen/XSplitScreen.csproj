@@ -40,7 +40,7 @@
 
   <ItemGroup>
     <Reference Include="DoDad.Library">
-      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\DoDad.Library\DoDad.Library.dll</HintPath>
+      <HintPath>I:\VisualStudioProjects\Releases\DoDad.Library\0.2.0\DoDad.Library-0.2.0.dll</HintPath>
     </Reference>
     <Reference Include="EOS">
       <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\EOS.dll</HintPath>

@@ -34,14 +34,11 @@ namespace DoDad.XSplitScreen
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
     public class XSplitScreen : BaseUnityPlugin
     {
-        // TODO
-        // default cursor not disabling
-
         #region Variables
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "com.DoDad";
         public const string PluginName = "XSplitScreen";
-        public const string PluginVersion = "2.0.3";
+        public const string PluginVersion = "2.0.6";
 
         public static Configuration configuration { get; private set; }
         public static XSplitScreen instance { get; private set; }
@@ -141,6 +138,7 @@ namespace DoDad.XSplitScreen
             LanguageAPI.Add(Language.MSG_SPLITSCREEN_DISABLE_TOKEN, Language.MSG_SPLITSCREEN_DISABLE_STRING);
             LanguageAPI.Add(Language.MSG_SPLITSCREEN_CONFIG_HEADER_TOKEN, Language.MSG_SPLITSCREEN_CONFIG_HEADER_STRING);
             LanguageAPI.Add(Language.MSG_DISCORD_LINK_TOKEN, Language.MSG_DISCORD_LINK_STRING);
+            LanguageAPI.Add(Language.MSG_PATREON_LINK_TOKEN, Language.MSG_PATREON_LINK_STRING);
             LanguageAPI.Add(Language.MSG_DISCORD_LINK_HOVER_TOKEN, Language.MSG_DISCORD_LINK_HOVER_STRING);
             LanguageAPI.Add(Language.MSG_VERIFY_CONTROLLER_TOKEN, Language.MSG_VERIFY_CONTROLLER_STRING);
             LanguageAPI.Add(Language.MSG_VERIFY_PROFILE_TOKEN, Language.MSG_VERIFY_PROFILE_STRING);
@@ -386,16 +384,13 @@ namespace DoDad.XSplitScreen
             if(configuration != null && instance != null)
                 status = configuration.enabled || MainMenuController.instance.desiredMenuScreen == XSplitScreenMenu.instance;
 
-            Log.LogOutput($"ToggleConditionalHooks: 1 status = '{status}'");
             if (configuration != null)
                 if (configuration.enabled && MainMenuController.instance.desiredMenuScreen != XSplitScreenMenu.instance)
                     return;
 
-            Log.LogOutput($"ToggleConditionalHooks: 2 status = '{status}'");
             if (exit)
                 status = false;
 
-            Log.LogOutput($"ToggleConditionalHooks: 3 status = '{status}'");
 
             if (status)
             {
@@ -1852,6 +1847,9 @@ namespace DoDad.XSplitScreen
         #region Definitions
         public class AssignmentEvent : UnityEvent<Controller, Assignment> { }
 
+        /// <summary>
+        /// This API is unreliable and subject to change! 
+        /// </summary>
         [System.Serializable]
         public class Configuration
         {
@@ -1866,7 +1864,7 @@ namespace DoDad.XSplitScreen
             public List<Assignment> assignments { get; private set; }
             public List<Controller> controllers { get; private set; }
 
-            public int2 graphDimensions { get; private set; }
+            internal int2 graphDimensions { get; private set; }
 
             public bool enabled { get; private set; }
 
@@ -2049,7 +2047,7 @@ namespace DoDad.XSplitScreen
             #endregion
 
             #region Events
-            public void OnControllerConnected(Rewired.ControllerStatusChangedEventArgs args)
+            internal void OnControllerConnected(Rewired.ControllerStatusChangedEventArgs args)
             {
                 if (args.controllerType == ControllerType.Mouse)
                     return;
@@ -2068,7 +2066,7 @@ namespace DoDad.XSplitScreen
                     }
                 }
             }
-            public void OnControllerDisconnected(Rewired.ControllerStatusChangedEventArgs args)
+            internal void OnControllerDisconnected(Rewired.ControllerStatusChangedEventArgs args)
             {
                 if (args.controllerType == ControllerType.Mouse)
                     return;
@@ -2116,7 +2114,29 @@ namespace DoDad.XSplitScreen
             #endregion
 
             #region Assignments
-            public void SetLocalId(int playerId, int localId)
+            internal void ResetAllPositions()
+            {
+                List<Assignment> changes = new List<Assignment>();
+
+                foreach (Assignment assignment in assignments)
+                {
+                    var newAssignment = assignment;
+
+                    newAssignment.ClearScreen();
+
+                    if (newAssignment.playerId == 0)
+                    {
+                        newAssignment.position = int2.one;
+                        newAssignment.displayId = 0;
+                    }
+
+                    changes.Add(newAssignment);
+                }
+
+                assignments = changes;
+                Save();
+            }
+            internal void SetLocalId(int playerId, int localId)
             {
                 Assignment? assignment = GetAssignmentByPlayerId(playerId);
 
@@ -2177,7 +2197,7 @@ namespace DoDad.XSplitScreen
 
                 return null;
             }
-            public void PushChanges(List<Assignment> changes)
+            internal void PushChanges(List<Assignment> changes)
             {
                 if (changes is null)
                     return;
@@ -2187,7 +2207,7 @@ namespace DoDad.XSplitScreen
                     SetAssignment(change);
                 }
             }
-            public void SetAssignment(Assignment assignment)
+            internal void SetAssignment(Assignment assignment)
             {
                 if (!assignment.position.IsPositive())
                     assignment.controller = null;
@@ -2206,7 +2226,7 @@ namespace DoDad.XSplitScreen
 
                 assignments[assignment.playerId] = assignment;
             }
-            public bool Save()
+            internal bool Save()
             {
                 try
                 {
@@ -2303,7 +2323,7 @@ namespace DoDad.XSplitScreen
             #endregion
 
             #region Splitscreen
-            public void TryAutoEnable()
+            internal void TryAutoEnable()
             {
                 if (enabledConfig.Value)
                     SetEnabled(true);
@@ -2465,6 +2485,9 @@ namespace DoDad.XSplitScreen
             public static readonly string MSG_DISCORD_LINK_TOKEN = "XSPLITSCREEN_DISCORD";
             public static readonly string MSG_DISCORD_LINK_HOVER_STRING = "Join the Discord for support";
             public static readonly string MSG_DISCORD_LINK_HOVER_TOKEN = "XSPLITSCREEN_DISCORD_HOVER";
+            public static readonly string MSG_PATREON_LINK_HREF = "https://www.patreon.com/user?u=84145799";
+            public static readonly string MSG_PATREON_LINK_TOKEN = "XSPLITSCREEN_PATREON";
+            public static readonly string MSG_PATREON_LINK_STRING = "Patreon";
             public static readonly string MSG_SPLITSCREEN_CONFIG_HEADER_TOKEN = "XSPLITSCREEN_CONFIG_HEADER";
             public static readonly string MSG_SPLITSCREEN_CONFIG_HEADER_STRING = "Assignment";
             public static readonly string MSG_SPLITSCREEN_ENABLE_TOKEN = "XSPLITSCREEN_ENABLE";

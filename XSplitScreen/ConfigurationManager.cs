@@ -83,6 +83,8 @@ namespace DoDad.XSplitScreen.Components
         private LanguageTextMeshController currentDisplayText;
         private GameObject leftArrow;
         private GameObject rightArrow;
+
+        private XButton resetAssignmentsButton;
         #endregion
 
         #region Base Methods
@@ -148,6 +150,7 @@ namespace DoDad.XSplitScreen.Components
             displayControl.transform.localPosition = new Vector3(0, 71.5f, 0);
             displayControl.transform.localScale = Vector3.one;
 
+            // Arrows
             // TODO find the location of the sprite and get rid of this
             GameObject rightArrowPrefab = ((SubmenuMainMenuScreen)MainMenuController.instance.settingsMenuScreen).submenuPanelPrefab.transform.GetChild(3).GetChild(2).GetChild(5).GetChild(0).GetChild(2).GetChild(0).GetChild(3).GetChild(3).GetChild(1).gameObject;
             rightArrow = GameObject.Instantiate(rightArrowPrefab, displayControl.transform);
@@ -207,6 +210,28 @@ namespace DoDad.XSplitScreen.Components
             label.transform.localScale = Vector3.one;
             label.name = "(TextMesh) Label";
 
+            //
+
+            resetAssignmentsButton = new GameObject("(XButton) Settings", typeof(RectTransform), typeof(Image), typeof(XButton)).GetComponent<XButton>();
+            resetAssignmentsButton.transform.SetParent(page.GetChild(6));
+            resetAssignmentsButton.transform.localScale = Vector3.one * 0.35f;
+            resetAssignmentsButton.transform.localPosition = new Vector3(-195f, 0, 0f);
+            resetAssignmentsButton.interactable = !XSplitScreen.configuration.enabled;
+
+            Image resetAssignmentImage = resetAssignmentsButton.GetComponent<Image>();
+
+            resetAssignmentImage.sprite = ControllerIconManager.instance.sprite_Reset;
+            resetAssignmentImage.SetNativeSize();
+            resetAssignmentImage.GetComponent<XButton>().onClickMono.AddListener(OnResetAssignments);
+
+            //GameObject resetLabel = GameObject.Instantiate(togglePrefab.transform.parent.GetChild(1).gameObject);
+            //resetLabel.transform.SetParent(page.GetChild(6));
+            //resetLabel.transform.localPosition = new Vector3(80,0,0);
+            //resetLabel.transform.localScale = Vector3.one;
+            //resetLabel.name = "(TextMesh) Reset Label";
+            //resetLabel.GetComponentInChildren<LanguageTextMeshController>().token = "Reset";
+            //
+
             UpdateToggle(XSplitScreen.configuration.enabled);
 
             page.gameObject.SetActive(false);
@@ -214,11 +239,17 @@ namespace DoDad.XSplitScreen.Components
         #endregion
 
         #region Event Listeners
+        public void OnResetAssignments(MonoBehaviour mono)
+        {
+            XSplitScreen.configuration.ResetAllPositions();
+            assignmentManager.OnUpdateDisplay();
+        }
         public void OnToggleEnableMod(bool status)
         {
             XSplitScreen.VerifyStatus verifyStatus = XSplitScreen.configuration.SetEnabled(status);
 
             UpdateToggle(XSplitScreen.configuration.enabled, verifyStatus);
+            resetAssignmentsButton.interactable = !XSplitScreen.configuration.enabled;
 
             if (verifyStatus == XSplitScreen.VerifyStatus.Success)
             {

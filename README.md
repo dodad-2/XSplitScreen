@@ -28,12 +28,11 @@ https://discord.gg/maHhJSv62G
 ## Planned
 
 - Player handicaps
-- Artifacts
-- Items
+- Artifacts (moved to standalone mod)
+- Items (moved to standalone mod)
 
 ## Known Issues
 
-- If the configuration is invalid clicking Enable Mod does nothing
 - Profiles sometimes 'forget' the last used character
 - Any user can change the loadout of the user who last refreshed the loadout panel
 - Users can equip skills their profiles haven't unlocked
@@ -42,8 +41,9 @@ https://discord.gg/maHhJSv62G
 - When using the Command Cube / scrapping the camera will jump to another player
 - Scoreboard UI does not work in multiplayer
 - Some options in the assignment screen can only be interacted with using the mouse
-- Sometimes the default cursor visual remains enabled
+- Moving the cursor before splitscreen is enabled causes the default cursor visual to remain
 - Using multiple monitors may cause issues. Please join the Discord to report them
+- Damage numbers only display on the first monitor
 
 ## Special thanks
 
@@ -71,11 +71,26 @@ God of Heck,
 Pub,
 Bloodgem64,
 kwiki,
-Wiism
+Wiism,
+instasnipe
 
 - Extra special thanks to my son: the best splitscreen partner in the world
+- Finally, if you want to support the mod please visit https://www.patreon.com/user?u=84145799 to leave a tip!
 
 ## Changelog
+
+**2.0.6**
+
+- API change without adhering to versioning rules (expect more of this)
+- Removed reset label
+
+**2.0.5**
+
+- Added assignment reset button
+
+**2.0.4**
+
+- Added button for Patreon
 
 **2.0.3**
 
