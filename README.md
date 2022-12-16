@@ -1,10 +1,8 @@
 # Description
 
-Splitscreen for Risk of Rain 2
+Splitscreen for Risk of Rain 2 with UI-based persistent preferences
 
-https://discord.gg/maHhJSv62G
-
-![UI](https://cdn.discordapp.com/attachments/995168655618871360/1049369226558853162/image.png)
+![Assignment Window](https://cdn.discordapp.com/attachments/995168655618871360/1052295984861941812/image.png)
 
 # Instructions
 
@@ -25,6 +23,30 @@ https://discord.gg/maHhJSv62G
 - Custom colors
 - Config option to auto enable if controllers are available
 
+## FAQ
+
+1. Why won't the mod enable splitscreen?
+    > If a player doesn't have a controller or a profile assigned or two players have the same profile assigned then splitscreen won't enable.
+
+2. Why is there only 1 profile available to use?
+    > Go back to the main menu and click on "Profile: " at the top right of the screen. Create a new profile and try again.
+
+3. Why is the mod still refusing to enable splitscreen?
+    > Hit the reset button and reassign everything.
+
+4. Does the mod support multiple keyboards and mice?
+    > No. This is a limitation in Risk of Rain 2 and therefore will never be supported.
+
+5. How do I bind my controls if they became unbound after starting a run?
+    > 1. Press start or ESC to open the menu
+    > 2. Open 'Settings'
+    > 3. Rebind your controls. The last player to move a cursor is the player the control will be bound to.
+
+6. How do I disable multi-monitor mode?
+    > Disabling activated displays in Unity is impossible. This means that to disable multi-monitor mode you must restart the game.
+
+7. My issue isn't listed. What do I do?
+    > [Join the Discord for support](https://discord.gg/maHhJSv62G)
 ## Planned
 
 - Player handicaps
@@ -48,7 +70,7 @@ https://discord.gg/maHhJSv62G
 ## Special thanks
 
 - iDeathHD for creating FixedSplitScreen
-- Claymaver for art assets (https://linktr.ee/claymaver)
+- [Claymaver](https://linktr.ee/claymaver) for art assets 
 - All the testers, supporters, and those who reported bugs including:
 
 MemexJota,
@@ -75,9 +97,15 @@ Wiism,
 instasnipe
 
 - Extra special thanks to my son: the best splitscreen partner in the world
-- Finally, if you want to support the mod please visit https://www.patreon.com/user?u=84145799 to leave a tip!
+- Finally, if you want to support the mod please visit [Patreon](https://www.patreon.com/user?u=84145799) to leave a tip!
 
 ## Changelog
+
+**2.0.7**
+
+- Cleaned up logging
+- Aligned reset button
+- Updated README
 
 **2.0.6**
 

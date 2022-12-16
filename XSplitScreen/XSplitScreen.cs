@@ -27,6 +27,11 @@ using DoDad.XSplitScreen.Components;
 
 namespace DoDad.XSplitScreen
 {
+    /// <summary>
+    /// This project is a learner project and as such expect poor / non-existant API and other issues. 
+    /// Feel free to contact me with questions in the Discord.
+    /// </summary>
+
     [BepInDependency(R2API.R2API.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
     [BepInDependency(Library.Library.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
     [R2APISubmoduleDependency(new string[] { "CommandHelper", "LanguageAPI" })]
@@ -38,7 +43,7 @@ namespace DoDad.XSplitScreen
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "com.DoDad";
         public const string PluginName = "XSplitScreen";
-        public const string PluginVersion = "2.0.6";
+        public const string PluginVersion = "2.0.7";
 
         public static Configuration configuration { get; private set; }
         public static XSplitScreen instance { get; private set; }
@@ -48,7 +53,7 @@ namespace DoDad.XSplitScreen
 
         private static readonly Log.LogLevel logLevel = Log.LogLevel.All;
 
-        private static readonly bool developerMode = false;
+        private static readonly bool developerMode = true;
 
         private static Coroutine WaitForMenuRoutine;
         private static Coroutine WaitForRewiredRoutine;
@@ -75,6 +80,9 @@ namespace DoDad.XSplitScreen
         public void OnDestroy()
         {
             CleanupReferences();
+
+            if (!developerMode)
+                return;
 
             int c;
 
@@ -295,6 +303,9 @@ namespace DoDad.XSplitScreen
                 On.RoR2.UI.ScoreboardController.Awake += ScoreboardController_Awake;
 
                 On.RoR2.UI.RuleCategoryController.SetRandomVotes += RuleCategoryController_SetRandomVotes;
+
+                //On.RoR2.CameraModes.CameraModePlayerBasic.PerformAimAssist += CameraModePlayerBasic_PerformAimAssist;
+
                 /* // Controller navigation requires layer keys
 
                 On.RoR2.UI.InputSourceFilter.Refresh += InputSourceFilter_Refresh;
@@ -363,6 +374,8 @@ namespace DoDad.XSplitScreen
 
                 On.RoR2.UI.RuleCategoryController.SetRandomVotes -= RuleCategoryController_SetRandomVotes;
 
+                //On.RoR2.CameraModes.CameraModePlayerBasic.PerformAimAssist -= CameraModePlayerBasic_PerformAimAssist;
+
                 /*
                 On.RoR2.UI.HGGamepadInputEvent.Update -= HGGamepadInputEvent_Update;
                 */
@@ -377,6 +390,7 @@ namespace DoDad.XSplitScreen
 
             ToggleConditionalHooks();
         }
+
         private void ToggleConditionalHooks(bool exit = false)
         {
             bool status = false;
@@ -412,7 +426,7 @@ namespace DoDad.XSplitScreen
             }
         }
 
-        #region UI Hooks
+        #region Hooks
         // TODO Replace hooks with IL hooks where appropriate
         private void CursorOpener_Awake(On.RoR2.UI.CursorOpener.orig_Awake orig, CursorOpener self)
         {
@@ -956,7 +970,9 @@ namespace DoDad.XSplitScreen
                             cameraRigController.nextTarget = CameraRigControllerSpectateControls.GetNextSpectateGameObject(networkUser, null);
                     }
                     else
+                    {
                         cameraRigController.cameraMode = RoR2.CameraModes.CameraModeNone.instance;
+                    }
 
                     ++index1;
                 }
@@ -973,11 +989,6 @@ namespace DoDad.XSplitScreen
                             Destroy(self.cameras[index1].gameObject);
                         local = null;
                     }
-                }
-
-                for (int index2 = 0; index2 < index3; ++index2)
-                {
-                    //self.cameras[index2].viewport = configuration.GetScreenRectByLocalId(index2);
                 }
             }
             else
@@ -1014,8 +1025,6 @@ namespace DoDad.XSplitScreen
             // Disable death effect for players still alive
             // TODO this is broken
 
-
-
             for (int index = 0; index < LocalCameraEffect.instancesList.Count; index++)
             {
                 GameObject target = uiCamera?.cameraRigController?.target;
@@ -1030,6 +1039,7 @@ namespace DoDad.XSplitScreen
                 else
                     instance.effectRoot.SetActive(false);
             }
+            
         }
         private void CombatHealthBarViewer_SetLayoutHorizontal(On.RoR2.UI.CombatHealthBarViewer.orig_SetLayoutHorizontal orig, RoR2.UI.CombatHealthBarViewer self)
         {
@@ -1050,7 +1060,7 @@ namespace DoDad.XSplitScreen
             }
             else
             {
-                self.userName = self.localUser.userProfile.name;
+                self.userName = developerMode ? "Player" : self.localUser.userProfile.name;
             }
         }
         private NetworkPlayerName NetworkUser_GetNetworkPlayerName(On.RoR2.NetworkUser.orig_GetNetworkPlayerName orig, RoR2.NetworkUser self)
@@ -1085,7 +1095,7 @@ namespace DoDad.XSplitScreen
                     }
                     else
                     {
-                        name = networkUser.localUser.userProfile.name;
+                        name = developerMode ? "Player" : networkUser.localUser.userProfile.name;
                     }
                 }
             }
@@ -1132,7 +1142,7 @@ namespace DoDad.XSplitScreen
 
                                 if (component2.localUser != null)
                                 {
-                                    str = component2.localUser.userProfile.name;
+                                    str = developerMode ? "Player" : component2.localUser.userProfile.name;
                                     localUserIndex = component2.localUser.id;
                                 }
                             }
@@ -1168,7 +1178,7 @@ namespace DoDad.XSplitScreen
             if (self.subjectAsNetworkUser)
             {
                 if (self.subjectAsNetworkUser.localUser != null)
-                    return Util.EscapeRichTextForTextMeshPro(self.subjectAsNetworkUser.localUser.userProfile.name);
+                    return Util.EscapeRichTextForTextMeshPro(developerMode ? "Player" : self.subjectAsNetworkUser.localUser.userProfile.name);
 
                 return Util.EscapeRichTextForTextMeshPro(self.subjectAsNetworkUser.userName);
             }
@@ -1400,6 +1410,73 @@ namespace DoDad.XSplitScreen
             }
         }
 
+        private void CameraModePlayerBasic_PerformAimAssist(On.RoR2.CameraModes.CameraModePlayerBasic.orig_PerformAimAssist orig, RoR2.CameraModes.CameraModePlayerBasic self, ref RoR2.CameraModes.CameraModeBase.CameraModeContext context, ref Vector2 aimStickVector)
+        {
+            ref RoR2.CameraModes.CameraModeBase.TargetInfo local1 = ref context.targetInfo;
+            ref RoR2.CameraModes.CameraModeBase.CameraInfo local2 = ref context.cameraInfo;
+            if (!context.targetInfo.isViewerControlled || context.targetInfo.isSprinting)
+                return;
+            Camera sceneCam = local2.sceneCam;
+            AimAssistTarget aimAssistTarget1 = (AimAssistTarget)null;
+            AimAssistTarget aimAssistTarget2 = (AimAssistTarget)null;
+            float num1 = CameraRigController.aimStickAssistMinSize.value;
+            float num2 = num1 * CameraRigController.aimStickAssistMaxSize.value;
+            float outMin = CameraRigController.aimStickAssistMaxSlowdownScale.value;
+            float outMax = CameraRigController.aimStickAssistMinSlowdownScale.value;
+            float num3 = 0.0f;
+            float num4 = 0.0f;
+            float num5 = 0.0f;
+            Vector2 vector2_1 = Vector2.zero;
+            Vector2 zero = Vector2.zero;
+            Vector2 normalized = aimStickVector.normalized;
+            Vector2 vector2_2 = new Vector2(0.5f, 0.5f);
+            for (int index = 0; index < AimAssistTarget.instancesList.Count; ++index)
+            {
+                AimAssistTarget instances = AimAssistTarget.instancesList[index];
+                if (instances.teamComponent.teamIndex != local1.teamIndex)
+                {
+                    Vector3 viewportPoint1 = sceneCam.WorldToViewportPoint(instances.point0.position);
+                    Vector3 viewportPoint2 = sceneCam.WorldToViewportPoint(instances.point1.position);
+                    float num6 = Mathf.Lerp(viewportPoint1.z, viewportPoint2.z, 0.5f);
+                    if ((double)num6 > 3.0)
+                    {
+                        float num7 = 1f / num6;
+                        Vector2 vector2_3 = (Vector2)Util.ClosestPointOnLine(viewportPoint1, viewportPoint2, (Vector3)vector2_2) - vector2_2;
+                        float num8 = Mathf.Clamp01(Util.Remap(vector2_3.magnitude, num1 * instances.assistScale * num7, num2 * instances.assistScale * num7, 1f, 0.0f));
+                        float num9 = Mathf.Clamp01(Vector3.Dot((Vector3)vector2_3, (Vector3)normalized));
+                        double num10 = (double)num9 * (double)num8;
+                        if ((double)num3 < (double)num8)
+                        {
+                            num3 = num8;
+                            aimAssistTarget2 = instances;
+                        }
+                        double num11 = (double)num5;
+                        if (num10 > num11)
+                        {
+                            num3 = num8;
+                            num4 = num9;
+                            aimAssistTarget1 = instances;
+                            vector2_1 = vector2_3;
+                        }
+                    }
+                }
+            }
+            Vector2 vector2_4 = aimStickVector;
+            if ((bool)(aimAssistTarget2))
+            {
+                float num6 = Mathf.Clamp01(Util.Remap(1f - num3, 0.0f, 1f, outMin, outMax));
+                vector2_4 *= num6;
+            }
+            float magnitude = 0.5f;
+
+            if ((bool)(aimAssistTarget1))
+            {
+                vector2_4 = (Vector2)Vector3.RotateTowards((Vector3)vector2_4, (Vector3)vector2_1, Util.Remap(num4, 1f, 0.0f, CameraRigController.aimStickAssistMaxDelta.value, CameraRigController.aimStickAssistMinDelta.value), magnitude);//0.0f);
+                //Vector2 direction = (aimAssistTarget1.transform.position - sceneCam.transform.position).normalized;
+                //aimStickVector += magnitude * direction;
+            }
+            aimStickVector = vector2_4;
+        }
         private void InputBindingControl_Update_IL(bool status)
         {
             if (status)
@@ -1532,7 +1609,7 @@ namespace DoDad.XSplitScreen
         #region UI
         private bool CreateUI()
         {
-            Log.LogOutput($"XSplitScreen.CreateUI: Attempting to create UI", Log.LogLevel.Info);
+            Log.LogOutput($"Creating UI", Log.LogLevel.Info);
 
             if (CreateMainMenuButton())
             {
@@ -1627,7 +1704,7 @@ namespace DoDad.XSplitScreen
 
             if (profiles.Length == 0)
             {
-                Log.LogOutput($"XSplitScreen.SetEnabled: No profiles found. Unable to log in local users.", Log.LogLevel.Warning);
+                Log.LogOutput($"No profiles found. Unable to log in local users.", Log.LogLevel.Warning);
                 return verifyStatus;
             }
 
@@ -1672,7 +1749,6 @@ namespace DoDad.XSplitScreen
                         });
 
                         configuration.SetLocalId(assignment.playerId, localId - 1);
-                        Log.LogOutput($"LogInUsers: Logged in user for '{assignment}'");
                         localId++;
                     }
                 }
@@ -1687,7 +1763,7 @@ namespace DoDad.XSplitScreen
 
                     if (string.Compare(localUsers[indexA].profile.fileName, localUsers[indexB].profile.fileName) == 0)
                     {
-                        Log.LogOutput($"LogInUsers: Unable to assign profile '{localUsers[indexA].profile.name}' to multiple local users", Log.LogLevel.Message);
+                        Log.LogOutput($"LogInUsers: Unable to assign profile '{localUsers[indexA].profile.name}' to multiple local users", Log.LogLevel.Warning);
                         verifyStatus = VerifyStatus.InvalidProfile;
                         return false;
                     }
@@ -1726,9 +1802,8 @@ namespace DoDad.XSplitScreen
         {
             if (!status || configuration is null)
             {
-                Log.LogOutput($"AssignControllers: Auto assigned", Log.LogLevel.Info);
                 ReInput.controllers.AutoAssignJoysticks();
-                PrintControllers();
+                //PrintControllers();
                 return;
             }
 
@@ -1761,8 +1836,6 @@ namespace DoDad.XSplitScreen
 
                 LocalUserManager.readOnlyLocalUsersList[playerIndex].inputPlayer.controllers.AddController(assignment.controller, false);
                 LocalUserManager.readOnlyLocalUsersList[playerIndex].ApplyUserProfileBindingsToRewiredPlayer();
-
-                Log.LogOutput($"AssignControllers: Assigned controller '{assignment.controller.name}' to localId '{playerIndex}'");
             }
 
             if (!keyboardAssigned)
@@ -1771,7 +1844,6 @@ namespace DoDad.XSplitScreen
                 {
                     if (controller.type == ControllerType.Mouse || controller.type == ControllerType.Keyboard)
                     {
-                        Log.LogOutput($"Keyboard not assigned - adding to first local player");
                         LocalUserManager.GetFirstLocalUser().inputPlayer.controllers.AddController(controller, false);
                         LocalUserManager.GetFirstLocalUser().ApplyUserProfileBindingsToRewiredPlayer();
                     }
@@ -1837,7 +1909,7 @@ namespace DoDad.XSplitScreen
             buttonTemplate = Instantiate(singleplayerButton);
             buttonTemplate.SetActive(false);
 
-            Log.LogOutput($"XSplitScreen.WaitForMenu: Ready to create UI");
+            Log.LogOutput($"Ready to create UI");
             readyToCreateUI = true;
 
             yield return null;
@@ -1972,7 +2044,7 @@ namespace DoDad.XSplitScreen
                             });
                         }
 
-                        Log.LogOutput($"Loaded '{wrapper.displayId.Length}' saved player preferences.", Log.LogLevel.Message);
+                        Log.LogOutput($"Loaded '{wrapper.displayId.Length}' preferences.", Log.LogLevel.Message);
                     }
                     catch(Exception e)
                     {
@@ -1981,7 +2053,7 @@ namespace DoDad.XSplitScreen
                 }
                 else
                 {
-                    Log.LogOutput($"No player preferences found.", Log.LogLevel.Message);
+                    Log.LogOutput($"No preferences found.", Log.LogLevel.Message);
                 }
             }
             private void InitializeAssignments()
@@ -2234,7 +2306,7 @@ namespace DoDad.XSplitScreen
                     Wrapper wrapper = new Wrapper(preferences);
                     preferencesConfig.Value = JsonUtility.ToJson(wrapper);
                     config.Save();
-                    Log.LogOutput("Configuration.Save: Success.", Log.LogLevel.Message);
+                    Log.LogOutput("Saved.", Log.LogLevel.Message);
                     return true;
                 }
                 catch(Exception e)
@@ -2485,7 +2557,7 @@ namespace DoDad.XSplitScreen
             public static readonly string MSG_DISCORD_LINK_TOKEN = "XSPLITSCREEN_DISCORD";
             public static readonly string MSG_DISCORD_LINK_HOVER_STRING = "Join the Discord for support";
             public static readonly string MSG_DISCORD_LINK_HOVER_TOKEN = "XSPLITSCREEN_DISCORD_HOVER";
-            public static readonly string MSG_PATREON_LINK_HREF = "https://www.patreon.com/user?u=84145799";
+            public static readonly string MSG_PATREON_LINK_HREF = "https://www.patreon.com/posts/splitscreen-for-75856056?utm_medium=clipboard_copy&utm_source=copyLink&utm_campaign=postshare_creator&utm_content=join_link";
             public static readonly string MSG_PATREON_LINK_TOKEN = "XSPLITSCREEN_PATREON";
             public static readonly string MSG_PATREON_LINK_STRING = "Patreon";
             public static readonly string MSG_SPLITSCREEN_CONFIG_HEADER_TOKEN = "XSPLITSCREEN_CONFIG_HEADER";

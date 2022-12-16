@@ -215,7 +215,7 @@ namespace DoDad.XSplitScreen.Components
             resetAssignmentsButton = new GameObject("(XButton) Settings", typeof(RectTransform), typeof(Image), typeof(XButton)).GetComponent<XButton>();
             resetAssignmentsButton.transform.SetParent(page.GetChild(6));
             resetAssignmentsButton.transform.localScale = Vector3.one * 0.35f;
-            resetAssignmentsButton.transform.localPosition = new Vector3(-195f, 0, 0f);
+            resetAssignmentsButton.transform.localPosition = new Vector3(-129f, 0, 0f);
             resetAssignmentsButton.interactable = !XSplitScreen.configuration.enabled;
 
             Image resetAssignmentImage = resetAssignmentsButton.GetComponent<Image>();
@@ -321,7 +321,6 @@ namespace DoDad.XSplitScreen.Components
         }
         private void UpdateDisplayArrows()
         {
-            Log.LogDebug($"UpdateDisplayArrows");
             XButton leftButton = leftArrow.GetComponent<XButton>();
             XButton rightButton = rightArrow.GetComponent<XButton>();
 

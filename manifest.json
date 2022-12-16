@@ -1,6 +1,6 @@
 ﻿{
 	"name": "XSplitScreen",
-	"version_number": "2.0.6",
+	"version_number": "2.0.7",
 	"website_url": "https://discord.gg/maHhJSv62G",
 	"description": "Splitscreen with seamless UI integration",
 	"dependencies": [
