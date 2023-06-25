@@ -1,12 +1,9 @@
 ﻿{
 	"name": "XSplitScreen",
-	"version_number": "2.0.7",
-	"website_url": "https://discord.gg/maHhJSv62G",
-	"description": "Splitscreen with seamless UI integration",
+	"version_number": "3.0.0",
+	"website_url": "https://www.patreon.com/user?u=84145799",
+	"description": "Seamless splitscreen",
 	"dependencies": [
-		"bbepis-BepInExPack-5.4.2103",
-		"RiskofThunder-HookGenPatcher-1.2.3",
-		"tristanmcpherson-R2API-4.4.1",
-		"dodad-DoDad_Library-0.2.0"
+		"dodad-XLibrary-1.0.0"
 	]
 }

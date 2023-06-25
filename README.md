@@ -2,7 +2,7 @@
 
 Splitscreen for Risk of Rain 2 with UI-based persistent preferences
 
-![Assignment Window](https://cdn.discordapp.com/attachments/995168655618871360/1052295984861941812/image.png)
+![Assignment Window](https://cdn.discordapp.com/attachments/995168655618871360/1121155522134024212/screenshot.png)
 
 # Instructions
 
@@ -18,68 +18,64 @@ Splitscreen for Risk of Rain 2 with UI-based persistent preferences
 
 - Supports up to 4 players in singleplayer or multiplayer
 - Seamless UI assignments with icon designs by Claymaver
-- Persistent configuration remembers screen positions and profiles
+- Persistent configuration
 - Multiple monitor support
 - Custom colors
-- Config option to auto enable if controllers are available
 
 ## FAQ
 
 1. Why won't the mod enable splitscreen?
-    > If a player doesn't have a controller or a profile assigned or two players have the same profile assigned then splitscreen won't enable.
+
+   > If a player doesn't have a controller or a profile assigned or two players have the same profile assigned then splitscreen won't enable.
 
 2. Why is there only 1 profile available to use?
-    > Go back to the main menu and click on "Profile: " at the top right of the screen. Create a new profile and try again.
+
+   > Go back to the main menu and click on "Profile: " at the top right of the screen. Create a new profile and try again.
 
 3. Why is the mod still refusing to enable splitscreen?
-    > Hit the reset button and reassign everything.
+
+   > Hit the reset button and reassign everything.
 
 4. Does the mod support multiple keyboards and mice?
-    > No. This is a limitation in Risk of Rain 2 and therefore will never be supported.
+
+   > No. This is a limitation in Risk of Rain 2 and therefore will never be supported by this mod. Use [Nucleus](https://nucleus-coop.github.io/) instead.
 
 5. How do I bind my controls if they became unbound after starting a run?
-    > 1. Press start or ESC to open the menu
-    > 2. Open 'Settings'
-    > 3. Rebind your controls. The last player to move a cursor is the player the control will be bound to.
+
+   > 1. Press start or ESC to open the menu
+   > 2. Open 'Settings'
+   > 3. Rebind your controls one player at a time. The last player to provide input is the player the control will be bound to.
 
 6. How do I disable multi-monitor mode?
-    > Disabling activated displays in Unity is impossible. This means that to disable multi-monitor mode you must restart the game.
+
+   > Disabling activated displays in Unity is impossible. This means that to disable multi-monitor mode you must restart the game.
 
 7. My issue isn't listed. What do I do?
-    > [Join the Discord for support](https://discord.gg/maHhJSv62G)
-## Planned
-
-- Player handicaps
-- Artifacts (moved to standalone mod)
-- Items (moved to standalone mod)
+   > [Join the Discord for support](https://discord.gg/maHhJSv62G)
 
 ## Known Issues
 
-- Profiles sometimes 'forget' the last used character
 - Any user can change the loadout of the user who last refreshed the loadout panel
 - Users can equip skills their profiles haven't unlocked
 - Some buttons can still become unbound when entering a run
-- Potential poor compatibility with other mods will be addressed in the future
-- When using the Command Cube / scrapping the camera will jump to another player
-- Scoreboard UI does not work in multiplayer
-- Some options in the assignment screen can only be interacted with using the mouse
-- Moving the cursor before splitscreen is enabled causes the default cursor visual to remain
-- Using multiple monitors may cause issues. Please join the Discord to report them
-- Damage numbers only display on the first monitor
+- When using the Command Cube / scrapping the camera may jump to another player
+- Scoreboard UI may not work in multiplayer
+- Using multiple monitors may cause UI issues
+- Gamepad cursors don't work with scrollbars
 
 ## Special thanks
 
 - iDeathHD for creating FixedSplitScreen
-- [Claymaver](https://linktr.ee/claymaver) for art assets 
+- [Claymaver](https://linktr.ee/claymaver) for art assets
 - All the testers, supporters, and those who reported bugs including:
 
 MemexJota,
 PKPotential,
 ThatBlueRacc,
 Kaiben,
-The_real_douchcanoe_,
+The*real_douchcanoe*,
 KCaptainawesome,
-O\_Linny_/O,
+O_Linny\_/O,
 noahwubs,
 Narl,
 Hansei,
@@ -94,12 +90,27 @@ Pub,
 Bloodgem64,
 kwiki,
 Wiism,
-instasnipe
+instasnipe,
+Mo
 
-- Extra special thanks to my son: the best splitscreen partner in the world
-- Finally, if you want to support the mod please visit [Patreon](https://www.patreon.com/user?u=84145799) to leave a tip!
+- Extra special thanks to my son: the best splitscreen partners in the world
+- Extra special thanks to my daughter: the best lemon artist in the world
+
+Finally, if you want to support the hard work that went into creating this mod please visit [Patreon](https://www.patreon.com/user?u=84145799) to leave a tip.
 
 ## Changelog
+
+**3.0.0**
+
+This update is a full and final rebuild of the entire mod. Many bugs have been fixed, while a few have been added. Over 300 hours - not including time spent handling issues in the Discord - and $150+ spent on peripherals went into this project resulting in what will hopefully be considered the closest Risk of Rain 2 can get to native splitscreen. Instead of listing every change, only the most notable will follow:
+
+- Gamepad cursors work on most UI and on all monitors
+- Preferences are properly associated with profiles
+- Added localization support via language file
+
+**2.0.8**
+
+- Fixed character selection bugs
 
 **2.0.7**
 
@@ -180,4 +191,4 @@ instasnipe
 
 **1.0.0**
 
-* First release
+- First release

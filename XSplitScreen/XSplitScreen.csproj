@@ -4,6 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>0.0.1</Version>
+    <AssemblyName>XSplitScreen</AssemblyName>
+    <RootNamespace>DoDad.XSplitScreen</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,15 +16,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="xfundamagebundle" />
-    <None Remove="xfundamagebundle.manifest" />
     <None Remove="xsplitscreenbundle" />
-    <None Remove="xsplitscreenbundle.manifest" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="xsplitscreenbundle" />
-    <EmbeddedResource Include="xsplitscreenbundle.manifest" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,12 +34,11 @@
     <PackageReference Include="MMHOOK.RoR2" Version="2022.4.19">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="R2API" Version="4.3.5" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="DoDad.Library">
-      <HintPath>I:\VisualStudioProjects\Releases\DoDad.Library\0.2.0\DoDad.Library-0.2.0.dll</HintPath>
+    <Reference Include="Decalicious">
+      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\Decalicious.dll</HintPath>
     </Reference>
     <Reference Include="EOS">
       <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\EOS.dll</HintPath>
@@ -73,6 +71,21 @@
       <HintPath>libs\ProBuilderMeshOps.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="R2API.ContentManagement">
+      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API.ContentManagement\R2API.ContentManagement.dll</HintPath>
+    </Reference>
+    <Reference Include="R2API.Core">
+      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API.Core\R2API.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="R2API.Items">
+      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API.Items\R2API.Items.dll</HintPath>
+    </Reference>
+    <Reference Include="R2API.Language">
+      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API.Language\R2API.Language.dll</HintPath>
+    </Reference>
+    <Reference Include="R2API.Prefab">
+      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API.Prefab\R2API.Prefab.dll</HintPath>
+    </Reference>
     <Reference Include="Rewired_Windows_Lib">
       <HintPath>libs\Rewired_Windows_Lib.dll</HintPath>
       <Private>false</Private>
@@ -81,14 +94,13 @@
       <HintPath>libs\SimpleJSON.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="Zio">
-      <HintPath>libs\Zio.dll</HintPath>
-      <Private>false</Private>
+    <Reference Include="XLibrary">
+      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\XLibrary\XLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(TargetPath)&quot; &quot;D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\scripts\&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetPath)&quot; &quot;D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\XSplitScreen\&quot;" />
   </Target>
 
 </Project>

@@ -1,5 +1,5 @@
 ManifestFileVersion: 0
-CRC: 2740394310
+CRC: 533005820
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
@@ -7,4 +7,7 @@ AssetBundleManifest:
       Dependencies: {}
     Info_1:
       Name: xsplitscreenbundle
+      Dependencies: {}
+    Info_2:
+      Name: xcontentbundle
       Dependencies: {}
