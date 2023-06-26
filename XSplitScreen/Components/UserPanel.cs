@@ -320,6 +320,12 @@ namespace DoDad.XSplitScreen.Components
             }
             else
             {
+                if (PlatformSystems.saveSystem.loadedUserProfiles.Count < 2)
+                {
+                    assignment.error = ErrorType.PROFILE_2;
+                    resolver.isResolved = false;
+                }
+
                 Log.LogOutput($"No unassigned users exist.");
             }
         }

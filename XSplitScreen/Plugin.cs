@@ -185,12 +185,14 @@ namespace DoDad.XSplitScreen
             dictionary.Add("XSS_OPTION_RESET_ASSIGNMENTS_HOVER", "Unassign all local players");
             dictionary.Add("XSS_ERROR_MINIMUM", "Minimum of 2 players not met");
             dictionary.Add("XSS_ERROR_PROFILE", "Cannot use the same profile for more than 1 local user");
+            dictionary.Add("XSS_ERROR_PROFILE_2", "Not enough profiles exist to add a second user");
             dictionary.Add("XSS_ERROR_CONTROLLER", "Drag a controller here to assign it to a profile");
             dictionary.Add("XSS_ERROR_POSITION", "Position error: Please reset all assignments using the Reset button");
             dictionary.Add("XSS_ERROR_DISPLAY", "Display error: Please reset all assignments using the Reset button");
             dictionary.Add("XSS_ERROR_OTHER", "Unknown error: Please reset all assignments using the Reset button");
             dictionary.Add("XSS_ERROR_SPLITSCREEN_ENABLED", "Disable splitscreen to change assignments");
             dictionary.Add("XSS_ERROR_FIRSTTIME", "Assign profiles and controllers for each monitor here");
+            dictionary.Add("XSS_USEROPTION_HUDSCALE", "HUD Scale: {0}"); // TODO create missing entries
             dictionary.Add("XSS_ENABLE", "Enable");
             dictionary.Add("XSS_DISABLE", "Disable");
             //dictionary.Add("XSS_LEMON_DAMAGE", "+25% damage!");

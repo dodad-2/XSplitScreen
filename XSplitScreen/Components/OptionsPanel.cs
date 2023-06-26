@@ -64,7 +64,9 @@ namespace DoDad.XSplitScreen.Components
         {
             var element = GetComponent<LayoutElement>();
             //element.minWidth = panelSize.x;
-            element.minHeight = 128;
+            //element.minHeight = 128;
+            element.preferredHeight = 128;
+            element.flexibleHeight = 1;
 
             monitorWidget = Instantiate(XLibrary.Resources.GetPrefabUI("SimpleImage")).GetComponent<Image>();
             monitorWidget.name = "Monitor Widget";
@@ -152,7 +154,7 @@ namespace DoDad.XSplitScreen.Components
             textRect.anchorMin = new Vector2(0, 0.5f);
             textRect.anchorMax = textRect.anchorMin;
             textRect.pivot = textRect.anchorMin;
-            textRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 200); 
+            textRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 200);
 
             splitscreenText.transform.SetParent(toggleContainer.transform);
             splitscreenText.transform.localPosition = new Vector3(15, -70, 0);

@@ -31,12 +31,12 @@ namespace DoDad.XSplitScreen.Components
         #region Unity Methods
         void OnEnable()
         {
-            GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Display.main.renderingHeight * 1.1f);//0.8f);
+            GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Display.main.renderingHeight * 0.9f);//0.8f);
         }
         void Awake()
         {
-            GetComponent<RectTransform>().anchorMin = Vector2.zero;
-            GetComponent<RectTransform>().anchorMax = Vector2.one;
+            GetComponent<RectTransform>().anchorMin = new Vector2(0, 0.1f);
+            GetComponent<RectTransform>().anchorMax = new Vector2(0, 0.95f);
 
             VerticalLayoutGroup verticalLayoutGroup = gameObject.GetComponent<VerticalLayoutGroup>();
 

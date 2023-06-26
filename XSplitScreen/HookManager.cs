@@ -123,6 +123,7 @@ namespace DoDad.XSplitScreen
                         On.RoR2.InputBindingDisplayController.Refresh += InputBindingDisplayController_Refresh;
                         On.RoR2.InputBindingDisplayController.OnEnable += InputBindingDisplayController_OnEnable;
                         On.RoR2.UI.CustomScrollbar.Awake += CustomScrollbar_Awake;
+                        On.RoR2.UI.HUDScaleController.SetScale += HUDScaleController_SetScale;
 
                         if (Plugin.developerMode)
                         {
@@ -162,6 +163,7 @@ namespace DoDad.XSplitScreen
                         On.RoR2.InputBindingDisplayController.Refresh -= InputBindingDisplayController_Refresh;
                         On.RoR2.InputBindingDisplayController.OnEnable -= InputBindingDisplayController_OnEnable;
                         On.RoR2.UI.CustomScrollbar.Awake -= CustomScrollbar_Awake;
+                        On.RoR2.UI.HUDScaleController.SetScale -= HUDScaleController_SetScale;
 
                         if (Plugin.developerMode)
                         {
@@ -174,9 +176,6 @@ namespace DoDad.XSplitScreen
                     break;
             }
         }
-
-
-
         #region Hooks (General)
         /// <summary>
         /// Add MultiInputHelper to custom sliders
@@ -629,6 +628,24 @@ namespace DoDad.XSplitScreen
 
         #region Hooks (Splitscreen - including additional UI hooks)
         /// <summary>
+        /// Make HUD scale per player
+        /// </summary>
+        private static void HUDScaleController_SetScale(On.RoR2.UI.HUDScaleController.orig_SetScale orig, HUDScaleController self)
+        {
+            var user = (self.GetComponent<HUD>().localUserViewer.currentNetworkUser.localUser as LocalSplitscreenUser);
+
+            if (user == null)
+            {
+                orig(self);
+                return;
+            }
+
+            var scale = new Vector3(user.assignment.hudScale / 100f, user.assignment.hudScale / 100f, user.assignment.hudScale / 100f);
+
+            foreach (var rect in self.rectTransforms)
+                rect.localScale = scale;
+        }
+        /// <summary>
         /// Refresh binding text 
         /// </summary>
         private static void InputBindingDisplayController_OnEnable(On.RoR2.InputBindingDisplayController.orig_OnEnable orig, InputBindingDisplayController self)
@@ -644,7 +661,8 @@ namespace DoDad.XSplitScreen
         {
             var oldSystem = self.eventSystemLocator.eventSystem;
 
-            self.eventSystemLocator.eventSystem = Input.lastEventSystem;
+            if (self.name.Equals("ButtonText"))
+                self.eventSystemLocator.eventSystem = Input.lastEventSystem;
 
             orig(self, forceRefresh);
 

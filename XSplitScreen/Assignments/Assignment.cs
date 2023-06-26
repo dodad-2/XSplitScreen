@@ -99,6 +99,19 @@ namespace DoDad.XSplitScreen.Assignments
                 onUpdateDisplay?.Invoke(this);
             }
         }
+        public int hudScale
+        {
+            get
+            {
+                return _hudScale;
+            }
+            set
+            {
+                _hudScale = value;
+
+                onUpdateHudScale?.Invoke(this);
+            }
+        }
         #endregion
 
         #region Variables
@@ -108,6 +121,7 @@ namespace DoDad.XSplitScreen.Assignments
         public Action<Assignment> onUpdateColor;
         public Action<Assignment> onUpdateProfile;
         public Action<Assignment> onUpdateLocalId;
+        public Action<Assignment> onUpdateHudScale;
 
         public ErrorType error = ErrorType.NONE;
 
@@ -136,6 +150,8 @@ namespace DoDad.XSplitScreen.Assignments
         /// </summary>
         [JsonProperty]
         private int _localId;
+        [JsonProperty]
+        private int _hudScale;
         #endregion
 
         #region Data
@@ -147,6 +163,8 @@ namespace DoDad.XSplitScreen.Assignments
             this.color = assignment.color;
             this.controller = assignment.controller;
             this.localId = assignment.localId;
+            this.hudScale = assignment.hudScale;
+
         }
         public void ResetAssignment(bool loseController = true)
         {
@@ -164,12 +182,12 @@ namespace DoDad.XSplitScreen.Assignments
 
             if (!position.IsPositive() || display < 0)
                 return screenRect;
-            
-                screenRect.x = position.x < 2 ? 0 : 0.5f;
-                screenRect.y = position.y < 2 ? 0 : 0.5f;
 
-                screenRect.height = position.y == 1 ? 1 : 0.5f;
-                screenRect.width = position.x == 1 ? 1 : 0.5f;
+            screenRect.x = position.x < 2 ? 0 : 0.5f;
+            screenRect.y = position.y < 2 ? 0 : 0.5f;
+
+            screenRect.height = position.y == 1 ? 1 : 0.5f;
+            screenRect.width = position.x == 1 ? 1 : 0.5f;
 
             return screenRect;
         }
@@ -184,5 +202,6 @@ namespace DoDad.XSplitScreen.Assignments
         POSITION,
         DISPLAY,
         MINIMUM,
+        PROFILE_2,
     }
 }

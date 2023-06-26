@@ -28,8 +28,8 @@ namespace DoDad.XSplitScreen.Components
             var containerElement = container.GetComponent<LayoutElement>();
             //containerElement.minWidth = DisplayAssignmentsPanel.displaySize.x;
             //containerElement.preferredWidth = DisplayAssignmentsPanel.displaySize.x;
-            containerElement.minHeight = iconSize.y * 1.5f;//256;//128;
-
+            containerElement.preferredHeight = iconSize.y * 1.5f;//256;//128;
+            containerElement.flexibleHeight = 1;
             //container.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, containerElement.minWidth);
 
             container.SetParent(transform);

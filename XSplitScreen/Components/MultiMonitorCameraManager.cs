@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 
 namespace DoDad.XSplitScreen.Components
 {
+    // To get this working Decalicious must not add any components to the cameras
     class MultiMonitorCameraManager : MonoBehaviour
     {
         #region Variables

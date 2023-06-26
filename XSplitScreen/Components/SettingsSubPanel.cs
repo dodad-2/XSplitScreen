@@ -19,13 +19,14 @@ namespace DoDad.XSplitScreen.Components
         public UserPanel panel;
 
         public bool open = false;
-        
+
         private HGButton functionButton;
         private Image functionImage;
 
         private Slider colorSlider;
-        private Slider aimAssistSlider;
+        private Slider hudScaleSlider;
         private Slider handicapSlider;
+        private LanguageTextMeshController hudScaleText;
         #endregion
 
         #region Unity Methods
@@ -64,28 +65,68 @@ namespace DoDad.XSplitScreen.Components
             verticalElements.childForceExpandWidth = false;
             verticalElements.childControlHeight = true;
             verticalElements.childControlWidth = true;
-            verticalElements.childScaleHeight = false;
-            verticalElements.childScaleWidth = false;
+            verticalElements.childScaleHeight = true;
+            verticalElements.childScaleWidth = true;
             verticalElements.childAlignment = TextAnchor.MiddleCenter;
 
             colorSlider = Instantiate(XLibrary.Resources.GetPrefabUI(XLibrary.Resources.UIPrefabIndex.Slider)).GetComponentInChildren<Slider>();
+
             Destroy(colorSlider.transform.parent.GetChild(1).gameObject);
             colorSlider.transform.parent.SetParent(transform);
-            colorSlider.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, panelSizeDelta * sliderWidth);
+            colorSlider.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, panelSizeDelta * SettingsSubPanel.sliderWidth);
             colorSlider.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sliderHeight);
-            colorSlider.transform.parent.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, panelSizeDelta * sliderWidth);
+            colorSlider.transform.parent.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, panelSizeDelta * SettingsSubPanel.sliderWidth);
             colorSlider.transform.parent.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sliderHeight);
-            colorSlider.transform.localPosition = new Vector3(colorSlider.GetComponent<RectTransform>().sizeDelta.x / 2f, 0, 0);
+
+            var sliderWidth = colorSlider.GetComponent<RectTransform>().sizeDelta.x;
+
+            colorSlider.transform.localPosition = new Vector3(sliderWidth / 2f, 0, 0);
             colorSlider.transform.parent.gameObject.SetActive(true);
             colorSlider.transform.parent.name = "(Slider) Color";
             colorSlider.onValueChanged.AddListener(OnUpdateColor);
             colorSlider.maxValue = 1;
             colorSlider.minValue = 0;
-            //colorSlider.gameObject.AddComponent<MultiInputHelper>().slider = colorSlider;
+            var colorLayout = colorSlider.transform.parent.gameObject.AddComponent<LayoutElement>();
+            colorLayout.flexibleHeight = 1;
+            colorLayout.preferredHeight = sliderHeight;
+
+            hudScaleSlider = Instantiate(XLibrary.Resources.GetPrefabUI(XLibrary.Resources.UIPrefabIndex.Slider)).GetComponentInChildren<Slider>();
+            Destroy(hudScaleSlider.transform.parent.GetChild(1).gameObject);
+            hudScaleSlider.transform.parent.SetParent(transform);
+            hudScaleSlider.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, panelSizeDelta * SettingsSubPanel.sliderWidth);
+            hudScaleSlider.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sliderHeight);
+            hudScaleSlider.transform.parent.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, panelSizeDelta * SettingsSubPanel.sliderWidth);
+            hudScaleSlider.transform.parent.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, sliderHeight);
+            hudScaleSlider.transform.localPosition = new Vector3(sliderWidth / 2f, 0, 0);
+            hudScaleSlider.transform.parent.gameObject.SetActive(true);
+            hudScaleSlider.transform.parent.name = "(Slider) HUD Scale";
+            hudScaleSlider.onValueChanged.AddListener(OnUpdateHUDScale);
+            hudScaleSlider.maxValue = 200;
+            hudScaleSlider.minValue = 10f;
+            hudScaleSlider.wholeNumbers = true;
+            var hudScaleLayout = hudScaleSlider.transform.parent.gameObject.AddComponent<LayoutElement>();
+            hudScaleLayout.flexibleHeight = 1;
+            hudScaleLayout.preferredHeight = sliderHeight;
+
+            hudScaleText = Instantiate(XLibrary.Resources.GetPrefabUI(XLibrary.Resources.UIPrefabIndex.SimpleText)).GetComponent<LanguageTextMeshController>();
+            hudScaleText.transform.SetParent(hudScaleSlider.transform.parent);
+            hudScaleText.transform.localPosition = Vector3.zero;
+            hudScaleText.token = "XSS_USEROPTION_HUDSCALE";
         }
         #endregion
 
         #region Event Listeners
+        public void OnUpdateHUDScale(Single value)
+        {
+            if (panel.current == null)
+                return;
+
+            Log.LogOutput($"New scale: {value}");
+            object[] args = new object[1];
+            args[0] = value;
+            hudScaleText.formatArgs = args;
+            panel.current.hudScale = (int)value;
+        }
         public void OnUpdateColor(Single value)
         {
             if (panel.current == null)
@@ -118,16 +159,19 @@ namespace DoDad.XSplitScreen.Components
             open = status;
 
             colorSlider.transform.parent.gameObject.SetActive(open);
+            hudScaleSlider.transform.parent.gameObject.SetActive(open);
             ShowControllerSubIcon(!open);
 
             if (open)
             {
                 functionImage.sprite = xSprite;
                 UpdateColorSlider();
+                UpdateHUDScaleSlider();
             }
             else
             {
                 functionImage.sprite = gearSprite;
+                Assignments.AssignmentManager.Save();
             }
         }
         private void UpdateColorSlider()
@@ -142,6 +186,13 @@ namespace DoDad.XSplitScreen.Components
             colorSlider.SetValueWithoutNotify(currentColorHSV.x);
 
             UpdateColorSliderHandle(panel.current.color);
+        }
+        private void UpdateHUDScaleSlider()
+        {
+            if (panel.current == null)
+                return;
+
+            hudScaleSlider.SetValueWithoutNotify(panel.current.hudScale);
         }
         private void ShowControllerSubIcon(bool status)
         {

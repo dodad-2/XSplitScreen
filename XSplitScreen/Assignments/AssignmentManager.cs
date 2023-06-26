@@ -168,6 +168,9 @@ namespace DoDad.XSplitScreen.Assignments
 
                 internalList = JsonConvert.DeserializeObject<List<Assignment>>(File.ReadAllText(filePath));
 
+                foreach (var assignment in internalList)
+                    FixAssignments(assignment);
+
                 onAssignmentsChanged?.Invoke();
             }
             catch (Exception e)
@@ -222,10 +225,19 @@ namespace DoDad.XSplitScreen.Assignments
                 position = XLibrary.Toolbox.int2.negative,
                 color = color,
                 display = -1,
-                localId = -1
+                localId = -1,
+                hudScale = 100,
             };
 
             return assignment;
+        }
+        #endregion
+
+        #region Compatibility
+        private static void FixAssignments(Assignment assignment)
+        {
+            if (assignment.hudScale < 10 || assignment.hudScale > 200)
+                assignment.hudScale = 100;
         }
         #endregion
 

@@ -44,7 +44,8 @@ namespace DoDad.XSplitScreen.Components
         private void CreateDisplay()
         {
             container = new GameObject("Display Assignments Panel Container", typeof(RectTransform), typeof(LayoutElement)).transform;
-            container.GetComponent<LayoutElement>().minHeight = 600;//containerDelta.y;//displaySize.y;
+            container.GetComponent<LayoutElement>().preferredHeight = 600;//containerDelta.y;//displaySize.y;
+            container.GetComponent<LayoutElement>().flexibleHeight = 3;
             container.SetParent(transform);
 
             display = Instantiate(XLibrary.Resources.GetPrefabUI("SimpleImage")).GetComponent<Image>();
@@ -172,13 +173,13 @@ namespace DoDad.XSplitScreen.Components
 
                     newPanel.GetComponent<UserPanel>().addButton.transform.localPosition = addPosition;
                     */
-                    
+
                     panels[x][y] = newPanel.GetComponent<UserPanel>();
                     panels[x][y].position = new int2(x, y);
 
                     onCheckAddButtons += panels[x][y].OnCheckAddButtons;
 
-                   // onEnableAddButtons += panels[x][y].SetAddButtonEnabled; // OLD ADDBUTTON CODE
+                    // onEnableAddButtons += panels[x][y].SetAddButtonEnabled; // OLD ADDBUTTON CODE
 
                     resetPanels += panels[x][y].ResetPanel;
                 }
@@ -269,7 +270,7 @@ namespace DoDad.XSplitScreen.Components
                     panels[assignment.position.x][assignment.position.y].AssignProfile(assignment, false);
 
                     var node = graph.graph[assignment.position.x][assignment.position.y];
-                    
+
                     if (node.nodeType != NodeType.None) // Ignore outer corners
                     {
                         /* // old addbutton code
