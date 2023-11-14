@@ -3,11 +3,5 @@ CRC: 533005820
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
-      Name: xfundamagebundle
-      Dependencies: {}
-    Info_1:
       Name: xsplitscreenbundle
-      Dependencies: {}
-    Info_2:
-      Name: xcontentbundle
       Dependencies: {}
