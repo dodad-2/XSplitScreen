@@ -102,7 +102,7 @@ Finally, if you want to support the hard work that went into creating this mod p
 
 **3.0.0**
 
-This update is a full and final rebuild of the entire mod. Many bugs have been fixed, while a few have been added. Over 300 hours - not including time spent handling issues in the Discord - and $150+ spent on peripherals went into this project resulting in what will hopefully be considered the closest Risk of Rain 2 can get to native splitscreen. Instead of listing every change, only the most notable will follow:
+This update is a full and final rebuild of the entire mod. Many bugs have been fixed, while a few have been added. A lot of time went into this project resulting in what will hopefully be considered the closest Risk of Rain 2 can get to native splitscreen. Instead of listing every change, only the most notable will follow:
 
 - Gamepad cursors work on most UI and on all monitors
 - Preferences are properly associated with profiles
