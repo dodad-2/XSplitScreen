@@ -38,69 +38,65 @@
 
   <ItemGroup>
     <Reference Include="Decalicious">
-      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\Decalicious.dll</HintPath>
+      <HintPath>Decalicious.dll</HintPath>
     </Reference>
     <Reference Include="EOS">
-      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed\EOS.dll</HintPath>
+      <HintPath>EOS.dll</HintPath>
     </Reference>
     <Reference Include="Facepunch.Steamworks">
-      <HintPath>libs\Facepunch.Steamworks.dll</HintPath>
+      <HintPath>Facepunch.Steamworks.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="KdTreeLib">
-      <HintPath>libs\KdTreeLib.dll</HintPath>
+      <HintPath>KdTreeLib.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="Mono.Security">
-      <HintPath>libs\Mono.Security.dll</HintPath>
+      <HintPath>Mono.Security.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="pb_Stl">
-      <HintPath>libs\pb_Stl.dll</HintPath>
+      <HintPath>pb_Stl.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="Poly2Tri">
-      <HintPath>libs\Poly2Tri.dll</HintPath>
+      <HintPath>Poly2Tri.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="ProBuilderCore">
-      <HintPath>libs\ProBuilderCore.dll</HintPath>
+      <HintPath>ProBuilderCore.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="ProBuilderMeshOps">
-      <HintPath>libs\ProBuilderMeshOps.dll</HintPath>
+      <HintPath>ProBuilderMeshOps.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="R2API.ContentManagement">
-      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API.ContentManagement\R2API.ContentManagement.dll</HintPath>
+      <HintPath>R2API.ContentManagement.dll</HintPath>
     </Reference>
     <Reference Include="R2API.Core">
-      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API.Core\R2API.Core.dll</HintPath>
+      <HintPath>R2API.Core.dll</HintPath>
     </Reference>
     <Reference Include="R2API.Items">
-      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API.Items\R2API.Items.dll</HintPath>
+      <HintPath>R2API.Items.dll</HintPath>
     </Reference>
     <Reference Include="R2API.Language">
-      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API.Language\R2API.Language.dll</HintPath>
+      <HintPath>R2API.Language.dll</HintPath>
     </Reference>
     <Reference Include="R2API.Prefab">
-      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\R2API.Prefab\R2API.Prefab.dll</HintPath>
+      <HintPath>R2API.Prefab.dll</HintPath>
     </Reference>
     <Reference Include="Rewired_Windows_Lib">
-      <HintPath>libs\Rewired_Windows_Lib.dll</HintPath>
+      <HintPath>Rewired_Windows_Lib.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="SimpleJSON">
-      <HintPath>libs\SimpleJSON.dll</HintPath>
+      <HintPath>SimpleJSON.dll</HintPath>
       <Private>false</Private>
     </Reference>
     <Reference Include="XLibrary">
-      <HintPath>D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\XLibrary\XLibrary.dll</HintPath>
+      <HintPath>XLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
-
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="copy /Y &quot;$(TargetPath)&quot; &quot;D:\SteamLibrary\steamapps\common\Risk of Rain 2\BepInEx\plugins\XSplitScreen\&quot;" />
-  </Target>
 
 </Project>
