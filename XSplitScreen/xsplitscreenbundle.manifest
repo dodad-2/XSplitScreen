@@ -1,0 +1,36 @@
+ManifestFileVersion: 0
+CRC: 52247701
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 7c884e4f750a86fb1c08672d05eea953
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: c90fc19e2679e5295d10bd00f33cb4c3
+HashAppended: 0
+ClassTypes:
+- Class: 28
+  Script: {instanceID: 0}
+- Class: 213
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/DoDad/Textures/lemon.png
+- Assets/DoDad/Textures/monitor.png
+- Assets/DoDad/Textures/dot.png
+- Assets/DoDad/Textures/display_center.png
+- Assets/DoDad/Textures/gear.png
+- Assets/DoDad/Textures/lock.png
+- Assets/DoDad/Textures/crosshair.png
+- Assets/DoDad/Textures/warning.png
+- Assets/DoDad/Textures/xmark.png
+- Assets/DoDad/Textures/reset.png
+- Assets/DoDad/Textures/unknown.png
+- Assets/DoDad/Textures/plus.png
+- Assets/DoDad/Textures/display.png
+- Assets/DoDad/Textures/display_screen.png
+- Assets/DoDad/Textures/divider.png
+- Assets/DoDad/Textures/keyboardmouse.png
+- Assets/DoDad/Textures/xinput.png
+- Assets/DoDad/Textures/dinput.png
+Dependencies: []

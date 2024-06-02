@@ -1,0 +1,62 @@
+{
+  "en": {
+    "XSS_NAME_HOVER": "Modify splitscreen settings.",
+    "XSS_OPTION_DISCORD": "Discord",
+    "XSS_OPTION_KOFI": "ko-fi",
+    "XSS_OPTION_DISCORD_HOVER": "Join for support, feedback or updates",
+    "XSS_OPTION_DONATE_HOVER": "Buy my kids a lemonade!",
+    "XSS_OPTION_RESET_ASSIGNMENTS_HOVER": "Unassign all local players",
+    "XSS_ERROR_MINIMUM": "Minimum of 2 players not met",
+    "XSS_ERROR_PROFILE": "Cannot use the same profile for more than 1 local user",
+    "XSS_ERROR_PROFILE_2": "Not enough profiles exist to add a local user",
+    "XSS_ERROR_CONTROLLER": "Drag a controller here to assign it to a profile",
+    "XSS_ERROR_POSITION": "Position error: Please reset all assignments using the Reset button",
+    "XSS_ERROR_DISPLAY": "Display error: Please reset all assignments using the Reset button",
+    "XSS_ERROR_OTHER": "Unknown error: Please reset all assignments using the Reset button",
+    "XSS_ERROR_SPLITSCREEN_ENABLED": "Disable splitscreen to change assignments",
+    "XSS_ERROR_FIRSTTIME": "Assign profiles and controllers for each monitor here",
+    "XSS_USEROPTION_HUDSCALE": "HUD Scale: {0}%",
+    "XSS_ENABLE": "Enable",
+    "XSS_DISABLE": "Disable"
+  }
+  "pt-br": {
+    "XSS_NAME_HOVER": "Modificar as configurações da tela-dividida.",
+    "XSS_OPTION_DISCORD": "Discord",
+    "XSS_OPTION_KOFI": "ko-fi",
+    "XSS_OPTION_DISCORD_HOVER": "Entre para suporte, dar feedback ou ver atualizações",
+    "XSS_OPTION_DONATE_HOVER": "Banque uma limonada pros meus filhos!",
+    "XSS_OPTION_RESET_ASSIGNMENTS_HOVER": "Desatribuir todos os jogadores locais",
+    "XSS_ERROR_MINIMUM": "Mínimo 2 jogadores necessário",
+    "XSS_ERROR_PROFILE": "Não se pode usar o mesmo perfil para mais de 1 jogador local",
+    "XSS_ERROR_PROFILE_2": "Não há perfis o suficiente para adicionar jogador local",
+    "XSS_ERROR_CONTROLLER": "Arraste um controle aqui para atribui-lo a um perfil",
+    "XSS_ERROR_POSITION": "Erro de posição: Reinicie os atributos usando o botão de reiniciar",
+    "XSS_ERROR_DISPLAY": "Erro de display: Reinicie os atributos usando o botão de reiniciar",
+    "XSS_ERROR_OTHER": "Erro desconhecido: Reinicie os atributos usando o botão de reiniciar",
+    "XSS_ERROR_SPLITSCREEN_ENABLED": "Desative a tela-dividida para fazer mudanças",
+    "XSS_ERROR_FIRSTTIME": "Atribua perfis e controles para cada monitor aqui",
+    "XSS_USEROPTION_HUDSCALE": "Escala de HUD: {0}%",
+    "XSS_ENABLE": "Ativar",
+    "XSS_DISABLE": "Desativar"
+  }
+  "fr": {
+    "XSS_NAME_HOVER": "Modifier les paramètres de splitscreen.",
+    "XSS_OPTION_DISCORD": "Discord",
+    "XSS_OPTION_KOFI": "ko-fi",
+    "XSS_OPTION_DISCORD_HOVER": "Rejoignez nous pour du support, du feedback ou des mises à jour",
+    "XSS_OPTION_DONATE_HOVER": "Achetez mes gosses de la limonade !",
+    "XSS_OPTION_RESET_ASSIGNMENTS_HOVER": "Désattribuer tout les joueurs locals",
+    "XSS_ERROR_MINIMUM": "Minimum de 2 joueurs non atteint",
+    "XSS_ERROR_PROFILE": "Impossible d'utiliser le même profil pour plus d'1 utilisateur local",
+    "XSS_ERROR_PROFILE_2": "Il n'y a pas assez de profil pour ajouter un deuxième utilisateur",
+    "XSS_ERROR_CONTROLLER": "Glissez une manette ici pour l'attribuer à un profil",
+    "XSS_ERROR_POSITION": "Erreur de position : veuillez réinitialiser toutes les attributions via le bouton de réinitialisation",
+    "XSS_ERROR_DISPLAY": "Erreur d'affichage : veuillez réinitialiser toutes les attributions via le bouton de réinitialisation",
+    "XSS_ERROR_OTHER": "Erreur inconnue : veuillez réinitialiser toutes les attributions via le bouton de réinitialisation",
+    "XSS_ERROR_SPLITSCREEN_ENABLED": "Désactivez le splitscreen pour changer les attributions",
+    "XSS_ERROR_FIRSTTIME": "Attribuez les profils et les manettes pour chaque moniteur ici",
+    "XSS_USEROPTION_HUDSCALE": "Taille de l'ATH : {0}%",
+    "XSS_ENABLE": "Activer",
+    "XSS_DISABLE": "Désactiver"
+  }
+}

@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# IDE1005: Delegate invocation can be simplified.
+csharp_style_conditional_delegate_call = true
