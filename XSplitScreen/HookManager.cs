@@ -14,6 +14,32 @@ using DoDad.XSplitScreen.Components;
 using MonoMod.Cil;
 using MonoMod.RuntimeDetour;
 
+// Note 26-10-24
+// Most of these hooks are now unnecessary thanks to the new DLC adding splitscreen
+// Ideally the entire mod would be rewritten at this point with an eye for proper
+// practices but for now we should just focus on getting it working
+
+// Note 8-11-24
+// The only major change is that Rewired users are added and some slight differences in enabling splitscreen
+// Only 2 users (multi monitor untested) are supported
+// The UI likely needs to be rebuilt as custom UI stuff isn't necessary anymore
+// This was a learning project, good luck!
+
+/*
+ * 	  <ItemGroup>
+		<PackageReference Include="BepInEx.Analyzers" Version="1.0.8">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="BepInEx.Core" Version="5.4.21" />
+		<PackageReference Include="RiskOfRain2.GameLibs" Version="1.3.1.275-r.0" />
+		<PackageReference Include="UnityEngine.Modules" Version="2019.4.26" />
+		<PackageReference Include="MMHOOK.RoR2" Version="2022.4.19">
+		  <NoWarn>NU1701</NoWarn>
+		</PackageReference>
+	  </ItemGroup>
+*/
+
 namespace DoDad.XSplitScreen
 {
     internal enum HookType
@@ -39,9 +65,30 @@ namespace DoDad.XSplitScreen
         {
             hooks.Clear();
 
-            //hooks.Add(
-            //    new Hook(typeof(RoR2.UI.TooltipController).GetMethod("FindUICamera", BindingFlags.Static | BindingFlags.NonPublic), TooltipController_FindUICamera)
-            //);
+            // I forgot how hooks are handled so just made a manual one
+
+            var harmony = new HarmonyLib.Harmony("com.dodad.xsplitscreen.hooks");
+
+            // Clone players
+
+            var cloneOriginal = typeof(InputManager_Base).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
+            var clonePatch = typeof(HookManager).GetMethod("ClonePlayersHook", BindingFlags.Static | BindingFlags.NonPublic);
+
+            harmony.Patch(cloneOriginal, prefix: new HarmonyLib.HarmonyMethod(clonePatch));
+
+            var runOriginalStart = typeof(CameraRigController).GetMethod("Start", BindingFlags.Instance | BindingFlags.NonPublic);
+            var runPatchStart = typeof(HookManager).GetMethod("CameraRigControllerStart", BindingFlags.Static | BindingFlags.NonPublic);
+
+			var runOriginalOnUpdate = typeof(CameraRigController).GetMethod("OnEnable", BindingFlags.Instance | BindingFlags.NonPublic);
+			var runPatchOnUpdate = typeof(HookManager).GetMethod("CameraRigControllerStart", BindingFlags.Static | BindingFlags.NonPublic);
+
+			harmony.Patch(runOriginalStart, prefix: new HarmonyLib.HarmonyMethod(runPatchStart));
+			harmony.Patch(runOriginalOnUpdate, prefix: new HarmonyLib.HarmonyMethod(runPatchOnUpdate));
+
+            /*hooks.Add(
+                new Hook(typeof(InputManager_Base).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic), ClonePlayersHook)
+            )*/
+;
         }
 
         public static void UpdateHooks(HookType hookType, bool enable)
@@ -52,24 +99,24 @@ namespace DoDad.XSplitScreen
                     if (enable)
                     {
                         On.RoR2.LocalUserManager.AddUser += LocalUserManager_AddUser;
-                        On.RoR2.UI.SurvivorIconController.Update += SurvivorIconController_Update;
+                        /*On.RoR2.UI.SurvivorIconController.Update += SurvivorIconController_Update;
                         On.RoR2.ViewablesCatalog.AddNodeToRoot += ViewablesCatalog_AddNodeToRoot;
                         On.RoR2.UI.MPButton.Awake += MPButton_Awake;
                         On.RoR2.UI.MPToggle.Awake += MPToggle_Awake;
                         On.RoR2.UI.MPDropdown.Awake += MPDropdown_Awake;
                         On.RoR2.UI.MainMenu.SubmenuMainMenuScreen.OnExit += SubmenuMainMenuScreen_OnExit;
-                        On.RoR2.UI.SettingsPanelController.Start += SettingsPanelController_Start;
+                        On.RoR2.UI.SettingsPanelController.Start += SettingsPanelController_Start;*/
                     }
                     else
                     {
                         On.RoR2.LocalUserManager.AddUser -= LocalUserManager_AddUser;
-                        On.RoR2.UI.SurvivorIconController.Update -= SurvivorIconController_Update;
+                        /*On.RoR2.UI.SurvivorIconController.Update -= SurvivorIconController_Update;
                         On.RoR2.ViewablesCatalog.AddNodeToRoot -= ViewablesCatalog_AddNodeToRoot;
                         On.RoR2.UI.MPButton.Awake -= MPButton_Awake;
                         On.RoR2.UI.MPToggle.Awake -= MPToggle_Awake;
                         On.RoR2.UI.MPDropdown.Awake -= MPDropdown_Awake;
                         On.RoR2.UI.MainMenu.SubmenuMainMenuScreen.OnExit -= SubmenuMainMenuScreen_OnExit;
-                        On.RoR2.UI.SettingsPanelController.Start -= SettingsPanelController_Start;
+                        On.RoR2.UI.SettingsPanelController.Start -= SettingsPanelController_Start;*/
                     }
 
                     SetRunListeners(enable);
@@ -77,6 +124,9 @@ namespace DoDad.XSplitScreen
                 case HookType.Singleplayer:
                     if (enable)
                     {
+                        // 26-10-24
+                        // Uncertain if these are necessary
+
                         On.RoR2.UI.InputSourceFilter.Refresh += InputSourceFilter_Refresh;
                         On.RoR2.UI.MPEventSystem.ValidateCurrentSelectedGameobject += MPEventSystem_ValidateCurrentSelectedGameobject;
                         On.RoR2.UI.MPInputModule.GetMousePointerEventData += MPInputModule_GetMousePointerEventData;
@@ -90,8 +140,13 @@ namespace DoDad.XSplitScreen
                     break;
                 case HookType.Splitscreen:
                     if (enable)
-                    {
-                        On.RoR2.UI.CursorOpener.OnEnable += CursorOpener_OnEnable;
+					{
+						// 26-10-24
+                        // QOL items not handled by RoR2 should be added back in
+
+						On.RoR2.ColorCatalog.GetMultiplayerColor += ColorCatalog_GetMultiplayerColor;
+						//On.RoR2.UI.Nameplate.SetBody += Nameplate_SetBody;
+						/*On.RoR2.UI.CursorOpener.OnEnable += CursorOpener_OnEnable;
                         On.RoR2.UI.SurvivorIconController.UpdateAvailability += SurvivorIconController_UpdateAvailability;
                         On.RoR2.CharacterSelectBarController.PickIcon += CharacterSelectBarController_PickIcon;
                         On.RoR2.CharacterSelectBarController.ShouldDisplaySurvivor += CharacterSelectBarController_ShouldDisplaySurvivor;
@@ -104,11 +159,9 @@ namespace DoDad.XSplitScreen
                         On.RoR2.PauseManager.CCTogglePause += PauseManager_CCTogglePause;
                         //On.RoR2.UI.MPEventSystem.Update += MPEventSystem_Update;
                         On.RoR2.UI.SimpleDialogBox.Create += SimpleDialogBox_Create;
-                        On.RoR2.LocalCameraEffect.OnUICameraPreCull += LocalCameraEffect_OnUICameraPreCull;
+                        //On.RoR2.LocalCameraEffect.OnUICameraPreCull += LocalCameraEffect_OnUICameraPreCull;
                         On.RoR2.UI.CombatHealthBarViewer.SetLayoutHorizontal += CombatHealthBarViewer_SetLayoutHorizontal;
                         On.RoR2.NetworkUser.UpdateUserName += NetworkUser_UpdateUserName;
-                        On.RoR2.ColorCatalog.GetMultiplayerColor += ColorCatalog_GetMultiplayerColor;
-                        On.RoR2.UI.Nameplate.SetBody += Nameplate_SetBody;
                         On.RoR2.UI.BaseSettingsControl.GetCurrentUserProfile += BaseSettingsControl_GetCurrentUserProfile;
                         On.RoR2.UI.InputBindingControl.StartListening += InputBindingControl_StartListening;
                         On.RoR2.UI.MPInput.CenterCursor += MPInput_CenterCursor;
@@ -120,19 +173,21 @@ namespace DoDad.XSplitScreen
                         On.RoR2.UI.ScoreboardController.Awake += ScoreboardController_Awake;
                         On.RoR2.UI.RuleCategoryController.SetRandomVotes += RuleCategoryController_SetRandomVotes;
                         On.RoR2.UI.TooltipController.SetTooltipProvider += TooltipController_SetTooltipProvider;
-                        On.RoR2.InputBindingDisplayController.Refresh += InputBindingDisplayController_Refresh;
+                        //On.RoR2.InputBindingDisplayController.Refresh += InputBindingDisplayController_Refresh;
                         On.RoR2.InputBindingDisplayController.OnEnable += InputBindingDisplayController_OnEnable;
                         On.RoR2.UI.CustomScrollbar.Awake += CustomScrollbar_Awake;
-                        On.RoR2.UI.HUDScaleController.SetScale += HUDScaleController_SetScale;
+                        On.RoR2.UI.HUDScaleController.SetScale += HUDScaleController_SetScale;*/
 
-                        if (Plugin.developerMode)
+						if (Plugin.developerMode)
                         {
                             On.RoR2.HealthComponent.TakeDamage += HealthComponent_TakeDamage;
                         }
                     }
                     else
-                    {
-                        On.RoR2.UI.CursorOpener.OnEnable -= CursorOpener_OnEnable;
+					{
+						On.RoR2.ColorCatalog.GetMultiplayerColor -= ColorCatalog_GetMultiplayerColor;
+						//On.RoR2.UI.Nameplate.SetBody -= Nameplate_SetBody;
+						/*On.RoR2.UI.CursorOpener.OnEnable -= CursorOpener_OnEnable;
                         On.RoR2.UI.SurvivorIconController.UpdateAvailability -= SurvivorIconController_UpdateAvailability;
                         On.RoR2.CharacterSelectBarController.PickIcon -= CharacterSelectBarController_PickIcon;
                         On.RoR2.CharacterSelectBarController.ShouldDisplaySurvivor -= CharacterSelectBarController_ShouldDisplaySurvivor;
@@ -145,11 +200,9 @@ namespace DoDad.XSplitScreen
                         On.RoR2.PauseManager.CCTogglePause -= PauseManager_CCTogglePause;
                         //On.RoR2.UI.MPEventSystem.Update -= MPEventSystem_Update;
                         On.RoR2.UI.SimpleDialogBox.Create -= SimpleDialogBox_Create;
-                        On.RoR2.LocalCameraEffect.OnUICameraPreCull -= LocalCameraEffect_OnUICameraPreCull;
+                        //On.RoR2.LocalCameraEffect.OnUICameraPreCull -= LocalCameraEffect_OnUICameraPreCull;
                         On.RoR2.UI.CombatHealthBarViewer.SetLayoutHorizontal -= CombatHealthBarViewer_SetLayoutHorizontal;
                         On.RoR2.NetworkUser.UpdateUserName -= NetworkUser_UpdateUserName;
-                        On.RoR2.ColorCatalog.GetMultiplayerColor -= ColorCatalog_GetMultiplayerColor;
-                        On.RoR2.UI.Nameplate.SetBody -= Nameplate_SetBody;
                         On.RoR2.UI.BaseSettingsControl.GetCurrentUserProfile -= BaseSettingsControl_GetCurrentUserProfile;
                         On.RoR2.UI.InputBindingControl.StartListening -= InputBindingControl_StartListening;
                         On.RoR2.UI.MPInput.CenterCursor -= MPInput_CenterCursor;
@@ -160,12 +213,12 @@ namespace DoDad.XSplitScreen
                         On.RoR2.UI.ProfileNameLabel.LateUpdate -= ProfileNameLabel_LateUpdate;
                         On.RoR2.UI.ScoreboardController.Awake -= ScoreboardController_Awake;
                         On.RoR2.UI.RuleCategoryController.SetRandomVotes -= RuleCategoryController_SetRandomVotes;
-                        On.RoR2.InputBindingDisplayController.Refresh -= InputBindingDisplayController_Refresh;
+                        //On.RoR2.InputBindingDisplayController.Refresh -= InputBindingDisplayController_Refresh;
                         On.RoR2.InputBindingDisplayController.OnEnable -= InputBindingDisplayController_OnEnable;
                         On.RoR2.UI.CustomScrollbar.Awake -= CustomScrollbar_Awake;
-                        On.RoR2.UI.HUDScaleController.SetScale -= HUDScaleController_SetScale;
+                        On.RoR2.UI.HUDScaleController.SetScale -= HUDScaleController_SetScale;*/
 
-                        if (Plugin.developerMode)
+						if (Plugin.developerMode)
                         {
                             On.RoR2.HealthComponent.TakeDamage -= HealthComponent_TakeDamage;
                         }
@@ -652,7 +705,7 @@ namespace DoDad.XSplitScreen
         {
             orig(self);
 
-            self.Refresh(true);
+            //self.Refresh(true); <-- Does not support multiple players
         }
         /// <summary>
         /// Update binding text to current user
@@ -820,10 +873,10 @@ namespace DoDad.XSplitScreen
         /// <returns></returns>
         private static Color ColorCatalog_GetMultiplayerColor(On.RoR2.ColorCatalog.orig_GetMultiplayerColor orig, int playerSlot)
         {
-            if (MPEventSystem.activeCount <= 1)
-                return Color.white;
+            if (playerSlot >= 0 && playerSlot < LocalUserManager.localUsersList.Count)
+				return ((LocalSplitscreenUser) LocalUserManager.localUsersList[playerSlot]).assignment.color;
 
-            return ((LocalSplitscreenUser)LocalUserManager.localUsersList[playerSlot]).assignment.color;
+            return Color.white;
         }
         /// <summary>
         /// Update nameplate colors
@@ -870,7 +923,7 @@ namespace DoDad.XSplitScreen
 
             self.UpdateAllHealthbarPositions(self.uiCamera.cameraRigController.sceneCam, self.uiCamera.camera);
         }
-        /// <summary>
+/*        /// <summary>
         /// Clear the death effect for alive players
         /// </summary>
         /// <param name="orig"></param>
@@ -893,7 +946,7 @@ namespace DoDad.XSplitScreen
                     instance.effectRoot.SetActive(false);
             }
 
-        }
+        }*/
         /// <summary>
         /// Parent unowned dialogue boxes to the last player who provided input
         /// </summary>
@@ -1218,10 +1271,68 @@ namespace DoDad.XSplitScreen
                 };
             }
         }
-        #endregion
+        
+        /*[HarmonyLib.HarmonyPatch(typeof(CHujUKaIFOXYFiNiynRAqFnpFjGe), nameof(CHujUKaIFOXYFiNiynRAqFnpFjGe.gLOOAxUFAvrvUufkVjaYyZoeLbLE))]
+        private static class AddRewiredPlayers2
+        {
 
-        #region Delegates & Events
-        private static void SetGeneralHooks(bool enable)
+        }*/
+
+        /// <summary>
+        /// Clone the Rewired players
+        /// </summary>
+        /// <param name="__instance"></param>
+        private static void ClonePlayersHook(InputManager_Base __instance)
+		{
+			if (__instance.userData.players.Count > 3)
+				return;
+
+			var player = __instance.userData.players[1].Clone();
+
+			__instance.userData.players.Add(player);
+			__instance.userData.players.Add(player.Clone());
+			__instance.userData.players.Add(player.Clone());
+		}
+
+        /// <summary>
+        /// Debug method
+        /// </summary>
+        /// <param name="__instance"></param>
+		private static void CameraRigControllerStart(CameraRigController __instance)
+        {
+            Debug.Log($"{__instance.name} START");
+		}
+
+        /// <summary>
+        /// Debug method
+        /// </summary>
+        /// <param name="__instance"></param>
+		private static void CameraRigControllerOnEnable(CameraRigController __instance)
+		{
+			Debug.Log($"{__instance.name} ON ENABLE");
+		}
+
+		/*
+				[HarmonyLib.HarmonyPatch(typeof(InputManager_Base), nameof(InputManager_Base.Awake))]
+				private static class AddRewiredPlayers
+				{
+					public static void Prefix(InputManager_Base __instance)
+					{
+						Debug.Log($"Prefix!! --------------------------------------------");
+						if (!__instance.tIzjwHQkeqofcYjmZQUuzGGgmFEy)
+							return;
+
+						var players = __instance.userData.players.ToArray();
+
+						__instance.userData.players.Add(players[1].Clone());
+						__instance.userData.players.Add(players[1].Clone());
+						__instance.userData.players.Add(players[1].Clone());
+					}
+				}*/
+		#endregion
+
+		#region Delegates & Events
+		private static void SetGeneralHooks(bool enable)
         {
             foreach (var hook in hooks)
             {

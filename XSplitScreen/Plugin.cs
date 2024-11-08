@@ -22,10 +22,10 @@ namespace DoDad.XSplitScreen
         public const string PluginGUID = PluginAuthor + "." + PluginName;
         public const string PluginAuthor = "com.DoDad";
         public const string PluginName = "XSplitScreen";
-        public const string PluginVersion = "3.1.3";
+        public const string PluginVersion = "3.1.4";
         public const string PluginTag = "XSS";
         public const string PluginBundle = "xsplitscreenbundle";
-        public const bool developerMode = true;
+        public const bool developerMode = false;
         public const bool clearAssignmentsOnStart = false;
         public const bool logModeOverrideToAll = false;
         public static bool active => UserManager.localUsers.Count > 0;

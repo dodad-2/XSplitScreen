@@ -148,49 +148,6 @@ namespace DoDad.XSplitScreen.Components
         #endregion
 
         #region Lemon
-        private void SetSecretState(bool state)
-        {
-            if (state)
-            {
-                currentSecret = (Secret)UnityEngine.Random.RandomRangeInt(0, secrets.Count - 1);
-                //R2API.RecalculateStatsAPI.GetStatCoefficients += RecalculateStatsAPI_GetStatCoefficients; // DISABLED BEFORE FINAL BUILD
-            }
-            else
-            {
-                currentSecret = Secret.None;
-                //R2API.RecalculateStatsAPI.GetStatCoefficients -= RecalculateStatsAPI_GetStatCoefficients; // DISABLED BEFORE FINAL BUILD
-
-            }
-
-            //button.hoverToken = secrets[currentSecret]; // DISABLED BEFORE FINAL BUILD
-        }
-        /*
-                private void RecalculateStatsAPI_GetStatCoefficients(RoR2.CharacterBody sender, R2API.RecalculateStatsAPI.StatHookEventArgs args)
-                {
-                    if (sender.teamComponent.teamIndex != RoR2.TeamIndex.Player)
-                        return;
-
-                    float mult = 0.25f;
-
-                    switch (currentSecret)
-                    {
-                        case Secret.Health:
-                            args.baseHealthAdd = sender.baseMaxHealth * mult;
-                            break;
-                        case Secret.Shield:
-                            args.baseShieldAdd = sender.baseMaxShield * mult;
-                            break;
-                        case Secret.Speed:
-                            args.baseMoveSpeedAdd = sender.baseMoveSpeed * mult;
-                            break;
-                        case Secret.Damage:
-                            args.baseDamageAdd = sender.baseDamage * mult;
-                            break;
-                        case Secret.None:
-                            break;
-                    }
-                }
-        */
         public void BeginLemonization()
         {
             foreach (var pair in targets)

@@ -107,6 +107,10 @@ TestMario,
 
 ## Changelog
 
+**3.1.4**
+
+- Disabled dev mode
+
 **3.1.3**
 
 - Fixed: Crashing with the new update. Thanks Narl! (multiplayer support not guaranteed)

@@ -67,12 +67,22 @@ namespace DoDad.XSplitScreen
             {
                 int localId = 0;
 
-                foreach (Assignment assignment in localUsers)
+                Debug.Log($"Attempting to activate '{localUsers.Count}' users");
+				Debug.Log($"ReInput.players.playerCount = '{ReInput.players.playerCount}' users");
+
+                if (ReInput.players.playerCount == 2)
+                    return false;
+
+                RoR2Application.SetIsInLocalMultiplayer(true);
+
+				foreach (Assignment assignment in localUsers)
                 {
-                    var player = ReInput.players.GetPlayer(localId + 1);
+                    var player = ReInput.players.GetPlayer(localId);
+
+                    Debug.Log($"ReInput player id '{localId}' is '{GetProfile(assignment.profile).name}'");
                     player.controllers.ClearAllControllers();
                     player.controllers.AddController(assignment.controller, false);
-
+                    
                     LocalUserManager.AddUser(player, GetProfile(assignment.profile));
 
                     var splitscreenUser = LocalUserManager.localUsersList[localId] as LocalSplitscreenUser;
@@ -173,12 +183,12 @@ namespace DoDad.XSplitScreen
 
             if (state)
             {
-                originalLayouts = RunCameraManager.screenLayouts;
+                originalLayouts = RunCameraManager.ScreenLayouts;
 
-                int modifiedLocalCount = localUsers.Count + 1;
-                int localCount = modifiedLocalCount - 1;
+                //int modifiedLocalCount = localUsers.Count + 1;
+                int localCount = localUsers.Count;//modifiedLocalCount - 1;
 
-                Rect[][] newLayout = RunCameraManager.screenLayouts;
+                Rect[][] newLayout = RunCameraManager.ScreenLayouts;
 
                 newLayout[localCount] = new Rect[localCount];
 
@@ -202,7 +212,7 @@ namespace DoDad.XSplitScreen
             }
 
             if(layout != null)
-                typeof(RunCameraManager).GetField("screenLayouts", BindingFlags.Static | BindingFlags.NonPublic).SetValue(null, layout);
+                typeof(RunCameraManager).GetField("ScreenLayouts", BindingFlags.Static | BindingFlags.Public).SetValue(null, layout);
         }
         private static void AssignControllerToPlayer(Controller controller, LocalUser user)
         {
