@@ -178,12 +178,12 @@ namespace DoDad.XSplitScreen
                         On.RoR2.UI.CustomScrollbar.Awake += CustomScrollbar_Awake;
                         On.RoR2.UI.HUDScaleController.SetScale += HUDScaleController_SetScale;*/
 
-						if (Plugin.developerMode)
+						/*if (Plugin.developerMode) // 4.0.0 rewrite 9-12-24
                         {
                             On.RoR2.HealthComponent.TakeDamage += HealthComponent_TakeDamage;
-                        }
-                    }
-                    else
+                        }*/
+					}
+					else
 					{
 						On.RoR2.ColorCatalog.GetMultiplayerColor -= ColorCatalog_GetMultiplayerColor;
 						//On.RoR2.UI.Nameplate.SetBody -= Nameplate_SetBody;
@@ -218,13 +218,13 @@ namespace DoDad.XSplitScreen
                         On.RoR2.UI.CustomScrollbar.Awake -= CustomScrollbar_Awake;
                         On.RoR2.UI.HUDScaleController.SetScale -= HUDScaleController_SetScale;*/
 
-						if (Plugin.developerMode)
+						/*if (Plugin.developerMode) // 4.0.0 rewrite 9-12-24
                         {
                             On.RoR2.HealthComponent.TakeDamage -= HealthComponent_TakeDamage;
-                        }
-                    }
+                        }*/
+					}
 
-                    SetGeneralRunDelegates(enable);
+					SetGeneralRunDelegates(enable);
                     SetGeneralHooks(enable);
                     break;
             }
@@ -267,14 +267,14 @@ namespace DoDad.XSplitScreen
         {
             orig(self, mainMenuController);
 
-            Plugin.RecreateAssignmentScreen();
-        }
-        /// <summary>
-        /// Add MultiInputHelper
-        /// </summary>
-        /// <param name="orig"></param>
-        /// <param name="self"></param>
-        private static void MPButton_Awake(On.RoR2.UI.MPButton.orig_Awake orig, MPButton self)
+			//Plugin.RecreateAssignmentScreen(); // 4.0.0 rewrite 9-12-24
+		}
+		/// <summary>
+		/// Add MultiInputHelper
+		/// </summary>
+		/// <param name="orig"></param>
+		/// <param name="self"></param>
+		private static void MPButton_Awake(On.RoR2.UI.MPButton.orig_Awake orig, MPButton self)
         {
             orig(self);
 
@@ -768,8 +768,8 @@ namespace DoDad.XSplitScreen
         /// <param name="orig"></param>
         private static void MPEventSystem_RecenterCursors(On.RoR2.UI.MPEventSystem.orig_RecenterCursors orig)
         {
-            Log.LogOutput($"MPEventSystem_RecenterCursors");
-            foreach (var instance in MPEventSystem.instancesList)
+			//Log.LogOutput($"MPEventSystem_RecenterCursors"); // 4.0.0 rewrite 9-12-24
+			foreach (var instance in MPEventSystem.instancesList)
                 if (instance.currentInputModule)
                     ((MPInput)instance.currentInputModule.input).CenterCursor();
         }
@@ -798,14 +798,14 @@ namespace DoDad.XSplitScreen
         /// <param name="self"></param>
         private static void VoteInfoPanelController_Awake(On.RoR2.UI.VoteInfoPanelController.orig_Awake orig, VoteInfoPanelController self)
         {
-            if (RoR2Application.isInMultiPlayer || Plugin.active)
+			/*if (RoR2Application.isInMultiPlayer || Plugin.active) // 4.0.0 rewrite 9-12-24
             {
                 self.voteController.canChangeVote = true;
 
                 return;
-            }
+            }*/
 
-            self.gameObject.SetActive(false);
+			self.gameObject.SetActive(false);
         }
         /// <summary>
         /// Center cursors by display
@@ -814,8 +814,8 @@ namespace DoDad.XSplitScreen
         /// <param name="self"></param>
         private static void MPInput_CenterCursor(On.RoR2.UI.MPInput.orig_CenterCursor orig, MPInput self)
         {
-            Log.LogOutput($"MPInput_CenterCursor");
-            var user = self.eventSystem.localUser as LocalSplitscreenUser;
+			//Log.LogOutput($"MPInput_CenterCursor"); // 4.0.0 rewrite 9-12-24
+			var user = self.eventSystem.localUser as LocalSplitscreenUser;
 
             if (user != null && user.assignment.display != -1 && user.assignment.display < Display.displays.Length)
             {
@@ -900,7 +900,7 @@ namespace DoDad.XSplitScreen
         {
             LocalSplitscreenUser user = self.localUser as LocalSplitscreenUser;
 
-            if (self.localUser == null)
+			/*if (self.localUser == null) // 4.0.0 rewrite 9-12-24
             {
                 Log.LogOutput($"Local user is null");
                 self.userName = self.GetNetworkPlayerName().GetResolvedName();
@@ -909,14 +909,14 @@ namespace DoDad.XSplitScreen
             {
                 Log.LogOutput($"Local user is NOT null");
                 self.userName = Plugin.developerMode ? $"Player {user.id + 1}" : user.userProfile.name;
-            }
-        }
-        /// <summary>
-        /// Health bar fix by iDeathHD
-        /// </summary>
-        /// <param name="orig"></param>
-        /// <param name="self"></param>
-        private static void CombatHealthBarViewer_SetLayoutHorizontal(On.RoR2.UI.CombatHealthBarViewer.orig_SetLayoutHorizontal orig, CombatHealthBarViewer self)
+            }*/
+		}
+		/// <summary>
+		/// Health bar fix by iDeathHD
+		/// </summary>
+		/// <param name="orig"></param>
+		/// <param name="self"></param>
+		private static void CombatHealthBarViewer_SetLayoutHorizontal(On.RoR2.UI.CombatHealthBarViewer.orig_SetLayoutHorizontal orig, CombatHealthBarViewer self)
         {
             if (!self.uiCamera)
                 return;
@@ -1079,15 +1079,15 @@ namespace DoDad.XSplitScreen
         {
             orig(self);
 
-            if (self.forceCursorForGamePad != Plugin.active)
-                self.forceCursorForGamePad = Plugin.active;
-        }
-        /// <summary>
-        /// Update event system from cursor movement
-        /// </summary>
-        /// <param name="orig"></param>
-        /// <param name="self"></param>
-        private static void MPInput_Update(On.RoR2.UI.MPInput.orig_Update orig, MPInput self)
+			/*if (self.forceCursorForGamePad != Plugin.active) // 4.0.0 rewrite 9-12-24
+                self.forceCursorForGamePad = Plugin.active;*/
+		}
+		/// <summary>
+		/// Update event system from cursor movement
+		/// </summary>
+		/// <param name="orig"></param>
+		/// <param name="self"></param>
+		private static void MPInput_Update(On.RoR2.UI.MPInput.orig_Update orig, MPInput self)
         {
             var previousPosiiton = self.mousePosition;
 
@@ -1227,8 +1227,8 @@ namespace DoDad.XSplitScreen
         {
             if (state)
             {
-                Log.LogOutput($" -------------- ENABLING ---------------");
-                IL.RoR2.UI.MPEventSystem.Update += (il) =>
+				//Log.LogOutput($" -------------- ENABLING ---------------"); // 4.0.0 rewrite 9-12-24
+				IL.RoR2.UI.MPEventSystem.Update += (il) =>
                 {
                     ILCursor c = new ILCursor(il);
 
@@ -1242,11 +1242,11 @@ namespace DoDad.XSplitScreen
                     c.Index += 1;
                     c.Next.Operand = Input.lastEventSystem;
 
-                    Log.LogOutput($"OpCode.Op1: {c.Next.OpCode.Op1}");
+					/*Log.LogOutput($"OpCode.Op1: {c.Next.OpCode.Op1}"); // 4.0.0 rewrite 9-12-24
                     Log.LogOutput($"OpCode.Op2: {c.Next.OpCode.Op2}");
                     Log.LogOutput($"OpCode.FlowControl: {c.Next.OpCode.FlowControl}");
-                    Log.LogOutput($"Operand: {c.Next.Operand}");
-                };
+                    Log.LogOutput($"Operand: {c.Next.Operand}");*/
+				};
             }
             else
             {
@@ -1264,11 +1264,11 @@ namespace DoDad.XSplitScreen
                     c.Index += 1;
                     c.Next.Operand = Input.lastEventSystem;
 
-                    Log.LogOutput($"OpCode.Op1: {c.Next.OpCode.Op1}");
+					/*Log.LogOutput($"OpCode.Op1: {c.Next.OpCode.Op1}"); // 4.0.0 rewrite 9-12-24
                     Log.LogOutput($"OpCode.Op2: {c.Next.OpCode.Op2}");
                     Log.LogOutput($"OpCode.FlowControl: {c.Next.OpCode.FlowControl}");
-                    Log.LogOutput($"Operand: {c.Next.Operand}");
-                };
+                    Log.LogOutput($"Operand: {c.Next.Operand}");*/
+				};
             }
         }
         

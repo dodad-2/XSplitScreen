@@ -23,10 +23,10 @@ namespace DoDad.XSplitScreen.Components
         #region Unity Methods
         public void OnDisable()
         {
-            ToggleCursorOpeners(Plugin.active, !Plugin.active);
+            /*ToggleCursorOpeners(Plugin.active, !Plugin.active); // 4.0.0 rewrite 9-12-24
 
             if (!Plugin.active)
-                ToggleUIHooks(false);
+                ToggleUIHooks(false);*/
         }
         #endregion
 
@@ -134,9 +134,9 @@ namespace DoDad.XSplitScreen.Components
         }
         public void DebugOutput()
         {
-            Log.LogOutput($"Success!");
-        }
-        public void OpenScreen()
+			//Log.LogOutput($"Success!"); // 4.0.0 rewrite 9-12-24
+		}
+		public void OpenScreen()
         {
             ToggleCursorOpeners(true);
             ToggleUIHooks(true);

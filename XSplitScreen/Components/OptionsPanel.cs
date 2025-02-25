@@ -53,9 +53,9 @@ namespace DoDad.XSplitScreen.Components
 
             splitscreenToggle?.GetComponent<MPEventSystemLocator>().Awake();
 
-            splitscreenToggle?.SetIsOnWithoutNotify(Plugin.active);
+			//splitscreenToggle?.SetIsOnWithoutNotify(Plugin.active); // 4.0.0 rewrite 9-12-24
 
-            UpdateSplitscreenToggleText();
+			UpdateSplitscreenToggleText();
         }
         #endregion
 
@@ -134,9 +134,9 @@ namespace DoDad.XSplitScreen.Components
             reset.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, resetSize.x);
             reset.GetComponent<RectTransform>().SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, resetSize.y);
 
-            reset.gameObject.SetActive(!Plugin.active);
+			//reset.gameObject.SetActive(!Plugin.active); // 4.0.0 rewrite 9-12-24
 
-            splitscreenToggle = Instantiate(XLibrary.Resources.GetPrefabUI(XLibrary.Resources.UIPrefabIndex.Toggle)).GetComponent<MPToggle>();
+			splitscreenToggle = Instantiate(XLibrary.Resources.GetPrefabUI(XLibrary.Resources.UIPrefabIndex.Toggle)).GetComponent<MPToggle>();
 
             var toggleContainer = new GameObject("Toggle Container");
             toggleContainer.transform.SetParent(transform);
@@ -204,16 +204,16 @@ namespace DoDad.XSplitScreen.Components
         #region Helpers
         private void UpdateResetButton()
         {
-            reset.interactable = !Plugin.active;
-        }
-        private void UpdateSplitscreenToggleText()
+			//reset.interactable = !Plugin.active; // 4.0.0 rewrite 9-12-24
+		}
+		private void UpdateSplitscreenToggleText()
         {
             if (splitscreenText == null)
                 return;
 
-            splitscreenText.token = Plugin.active ? disableToken : enableToken;
-        }
-        private void RequestDisplay(int display)
+			//splitscreenText.token = Plugin.active ? disableToken : enableToken; // 4.0.0 rewrite 9-12-24
+		}
+		private void RequestDisplay(int display)
         {
             display = Mathf.Clamp(display, 0, Display.displays.Length - 1);
 

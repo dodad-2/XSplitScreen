@@ -47,10 +47,10 @@ namespace DoDad.XSplitScreen.Components
 
             base.OnPointerClick(eventData);
 
-            if (log)
-                Log.LogOutput($"'{name}' OnPointerClick");
-        }
-        public override void OnPointerDown(PointerEventData eventData)
+			/*if (log) // 4.0.0 rewrite 9-12-24
+                Log.LogOutput($"'{name}' OnPointerClick");*/
+		}
+		public override void OnPointerDown(PointerEventData eventData)
         {
             if (!interactable)
                 return;
@@ -59,10 +59,10 @@ namespace DoDad.XSplitScreen.Components
 
             onPointerDown?.Invoke(this, eventData.currentInputModule);
 
-            if (log)
-                Log.LogOutput($"'{name}' OnPointerDown");
-        }
-        public override void OnPointerUp(PointerEventData eventData)
+			/*if (log) // 4.0.0 rewrite 9-12-24
+                Log.LogOutput($"'{name}' OnPointerDown");*/
+		}
+		public override void OnPointerUp(PointerEventData eventData)
         {
             if (!interactable)
                 return;
@@ -71,10 +71,10 @@ namespace DoDad.XSplitScreen.Components
 
             onPointerUp?.Invoke(this, eventData.currentInputModule);
 
-            if (log)
-                Log.LogOutput($"'{name}' OnPointerUp");
-        }
-        public override void OnPointerEnter(PointerEventData eventData)
+			/*if (log) // 4.0.0 rewrite 9-12-24
+                Log.LogOutput($"'{name}' OnPointerUp");*/
+		}
+		public override void OnPointerEnter(PointerEventData eventData)
         {
             if (!interactable)
                 return;
@@ -83,10 +83,10 @@ namespace DoDad.XSplitScreen.Components
 
             eventData.currentInputModule.eventSystem.SetSelectedGameObject(gameObject, (BaseEventData)eventData);
 
-            if (log)
-                Log.LogOutput($"'{name}' OnPointerEnter");
-        }
-        public override void OnPointerExit(PointerEventData eventData)
+			/*if (log) // 4.0.0 rewrite 9-12-24
+                Log.LogOutput($"'{name}' OnPointerEnter");*/
+		}
+		public override void OnPointerExit(PointerEventData eventData)
         {
             if (!interactable)
                 return;
@@ -97,10 +97,10 @@ namespace DoDad.XSplitScreen.Components
 
             eventData.currentInputModule.eventSystem.SetSelectedGameObject(null, (BaseEventData)eventData);
 
-            if (log)
-                Log.LogOutput($"'{name}' OnPointerExit");
-        }
-        public override void OnSubmit(BaseEventData eventData)
+			/*if (log) // 4.0.0 rewrite 9-12-24
+                Log.LogOutput($"'{name}' OnPointerExit");*/
+		}
+		public override void OnSubmit(BaseEventData eventData)
         {
             if (!interactable)
                 return;
@@ -114,13 +114,13 @@ namespace DoDad.XSplitScreen.Components
 
             onSubmit?.Invoke(this, eventData.currentInputModule);
 
-            if (log)
-                Log.LogOutput($"'{name}' OnSubmit");
-        }
-        #endregion
+			/*if (log) // 4.0.0 rewrite 9-12-24
+                Log.LogOutput($"'{name}' OnSubmit");*/
+		}
+		#endregion
 
-        #region Event Handlers
+		#region Event Handlers
 
-        #endregion
-    }
+		#endregion
+	}
 }

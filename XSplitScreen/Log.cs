@@ -1,77 +1,73 @@
-﻿using BepInEx.Configuration;
-using BepInEx.Logging;
-using DoDad.XLibrary.Interfaces;
+﻿using BepInEx.Logging;
+using System;
+using UnityEngine;
 
-namespace DoDad.XSplitScreen
+namespace dodad.XSplitscreen
 {
-    internal class Log : IConfigurableContent
-    {
-        internal static LogLevel logLevel = LogLevel.None;
-        internal static ManualLogSource _logSource;
+	internal static class Log
+	{
+		private static ELogChannel ActiveChannels = ELogChannel.None;
+		private static ManualLogSource Source;
 
-        internal static void Init(ManualLogSource logSource)
-        {
-            _logSource = logSource;
-        }
+		/// <summary>
+		/// Initialize the logger with the plugin log source and log level
+		/// </summary>
+		/// <param name="source"></param>
+		/// <param name="channels"></param>
+		internal static void Init(ManualLogSource source, ELogChannel channels)
+		{
+			Source = source;
 
-        internal static void LogOutput(object data, LogLevel level = LogLevel.Debug)
-        {
-            if (level > logLevel || logLevel == LogLevel.None)
-                return;
+			SetActiveChannels(channels);
+		}
 
-            switch (level)
-            {
-                case LogLevel.Message:
-                    _logSource.LogMessage(data);
-                    break;
-                case LogLevel.Info:
-                    _logSource.LogInfo(data);
-                    break;
-                case LogLevel.Warning:
-                    _logSource.LogWarning(data);
-                    break;
-                case LogLevel.Error:
-                    _logSource.LogError(data);
-                    break;
-                case LogLevel.Fatal:
-                    _logSource.LogFatal(data);
-                    break;
-                case LogLevel.Debug:
-                    _logSource.LogDebug(data);
-                    break;
-            }
-        }
-        private static void LogDebug(object data) => _logSource.LogDebug(data);
-        private static void LogError(object data) => _logSource.LogError(data);
-        private static void LogFatal(object data) => _logSource.LogFatal(data);
-        private static void LogInfo(object data) => _logSource.LogInfo(data);
-        private static void LogMessage(object data) => _logSource.LogMessage(data);
-        private static void LogWarning(object data) => _logSource.LogWarning(data);
+		/// <summary>
+		/// Set the log level for the plugin
+		/// </summary>
+		/// <param name="channels"></param>
+		internal static void SetActiveChannels(ELogChannel channels)
+		{
+			ActiveChannels = channels;
 
-        public void ConfigureContent(ConfigFile configFile)
-        {
-            logLevel = (Log.LogLevel)(UnityEngine.Mathf.Clamp(configFile.Bind<int>("Logging", "Level", 4, "None = 0, Message = 1, Info = 2, Warning = 3, Error = 4, Fatal = 5, Debug = 6, All = 7").Value, 0, 7));
+			Source.LogMessage($"Set log channels to '{channels}'");
+		}
 
-            if (Plugin.logModeOverrideToAll)
-                logLevel = LogLevel.All;
-        }
+		/// <summary>
+		/// Output a message to the console
+		/// </summary>
+		/// <param name="data"></param>
+		/// <param name="channel"></param>
+		internal static void Print(object data, ELogChannel channel = ELogChannel.Debug)
+		{
+			if (!ActiveChannels.HasFlag(ELogChannel.All) &&
+				!ActiveChannels.HasFlag(channel))
+				return;
 
-        public bool IsContentEnabled()
-        {
-            return true;
-        }
+			if (channel.HasFlag(ELogChannel.Message))
+				Source.LogMessage(data);
+			else if (channel.HasFlag(ELogChannel.Info))
+				Source.LogInfo(data);
+			else if (channel.HasFlag(ELogChannel.Warning))
+				Source.LogWarning(data);
+			else if (channel.HasFlag(ELogChannel.Error))
+				Source.LogError(data);
+			else if (channel.HasFlag(ELogChannel.Fatal))
+				Source.LogFatal(data);
+			else if (channel.HasFlag(ELogChannel.Debug))
+				Source.LogDebug(data);
+		}
 
-        internal enum LogLevel
-        {
-            None = 0,
-            Message = 1,
-            Info = 2,
-            Warning = 3,
-            Error = 4,
-            Fatal = 5,
-            Debug = 6,
-            All = 7
-        }
-
-    }
+		[Flags]
+		internal enum ELogChannel
+		{
+			None = 1 << 0,
+			Message = 1 << 1,
+			Info = 1 << 2,
+			Warning = 1 << 3,
+			Error = 1 << 4,
+			Fatal = 1 << 5,
+			Debug = 1 << 6,
+			All = 1 << 7,
+		}
+	}
 }

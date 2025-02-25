@@ -72,12 +72,12 @@ namespace DoDad.XSplitScreen.Components
             subIconButton.onPointerDown += OnBeginInteraction;
             subIconButton.onPointerUp += OnEndInteraction;
 
-            if (Plugin.active)
+			/*if (Plugin.active) // 4.0.0 rewrite 9-12-24
                 OnSplitscreenEnabled();
             else
-                OnSplitscreenDisabled();
+                OnSplitscreenDisabled();*/
 
-            UserManager.onSplitscreenEnabled += OnSplitscreenEnabled;
+			UserManager.onSplitscreenEnabled += OnSplitscreenEnabled;
             UserManager.onSplitscreenDisabled += OnSplitscreenDisabled;
             LemonController.onLemon += OnLemon;
         }
@@ -159,9 +159,9 @@ namespace DoDad.XSplitScreen.Components
         #region Public Methods
         public void SetAssignment(Assignment assignment)
         {
-            Log.LogOutput($"ControllerIcon.SetAssignment {controller.name} receiving assignment '{(assignment == null ? "none" : assignment.profile)}'");
+			//Log.LogOutput($"ControllerIcon.SetAssignment {controller.name} receiving assignment '{(assignment == null ? "none" : assignment.profile)}'"); // 4.0.0 rewrite 9-12-24
 
-            if (this.current != null)
+			if (this.current != null)
                 this.current.onUpdateController -= OnControllerUpdated;
 
             this.current = assignment;
