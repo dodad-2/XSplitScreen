@@ -38,8 +38,8 @@ namespace DoDad.XSplitScreen
 
             if (!LocalUserManager.IsUserChangeSafe())
             {
-                Log.LogOutput($"Can't call AssignSplitscreenUsers: user login changes are not safe at this time");
-                return false;
+				//Log.LogOutput($"Can't call AssignSplitscreenUsers: user login changes are not safe at this time"); // 4.0.0 rewrite 9-12-24
+				return false;
             }
 
             if (localUsers.Count > 0 || LocalUserManager.localUsersList.Count() > 0)
@@ -49,8 +49,8 @@ namespace DoDad.XSplitScreen
             {
                 LoadDefaultUser();
                 pluginError = ErrorType.MINIMUM;
-                Log.LogOutput($"Assignments were null or less than 2: no splitscreen users were created.", Log.LogLevel.Info);
-                return false;
+				//Log.LogOutput($"Assignments were null or less than 2: no splitscreen users were created.", Log.LogLevel.Info); // 4.0.0 rewrite 9-12-24
+				return false;
             }
 
             var invalidUsers = ValidateAssignments(assignments);
@@ -112,9 +112,9 @@ namespace DoDad.XSplitScreen
                 }
 
                 HookManager.UpdateHooks(HookType.Splitscreen, true);
-                Log.LogOutput($" -- Splitscreen hooks enabled");
+				//Log.LogOutput($" -- Splitscreen hooks enabled"); // 4.0.0 rewrite 9-12-24
 
-                foreach (MPEventSystem system in MPEventSystem.instancesList)
+				foreach (MPEventSystem system in MPEventSystem.instancesList)
                 {
                     if (system.isCombinedEventSystem)
                         continue;
@@ -136,8 +136,8 @@ namespace DoDad.XSplitScreen
             catch (Exception e)
             {
                 UnloadLocalUsers();
-                Log.LogOutput($"Unable to assign splitscreen users: {e}", Log.LogLevel.Error);
-                return false;
+				//Log.LogOutput($"Unable to assign splitscreen users: {e}", Log.LogLevel.Error); // 4.0.0 rewrite 9-12-24
+				return false;
             }
         }
         #endregion
@@ -175,9 +175,9 @@ namespace DoDad.XSplitScreen
         }
         private static void Run_onRunStartGlobal(Run obj, PlayerCharacterMasterController player)
         {
-            Log.LogOutput($"Run started: {CameraRigController.instancesList.Count}");
-        }
-        private static void UpdateCameraRects(bool state)
+			//Log.LogOutput($"Run started: {CameraRigController.instancesList.Count}"); // 4.0.0 rewrite 9-12-24
+		}
+		private static void UpdateCameraRects(bool state)
         {
             var layout = originalLayouts;
 
@@ -230,9 +230,9 @@ namespace DoDad.XSplitScreen
             }
             catch (Exception e)
             {
-                Log.LogOutput($"Unable to disable splitscreen: {e}", Log.LogLevel.Error);
-            }
-        }
+				//Log.LogOutput($"Unable to disable splitscreen: {e}", Log.LogLevel.Error); // 4.0.0 rewrite 9-12-24
+			}
+		}
         private static void UnloadLocalUsers()
         {
             if (localUsers.Count > 0)
@@ -254,8 +254,8 @@ namespace DoDad.XSplitScreen
             }
             catch (Exception e)
             {
-                Log.LogOutput($"Unable to set local users: {e}", Log.LogLevel.Error);
-                return false;
+				//Log.LogOutput($"Unable to set local users: {e}", Log.LogLevel.Error); // 4.0.0 rewrite 9-12-24
+				return false;
             }
 
             return true;

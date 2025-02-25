@@ -104,9 +104,9 @@ namespace DoDad.XSplitScreen.Components
             renderTexture.Create();
 
             mainCamera.targetTexture = renderTexture;
-            Log.LogOutput($"renderTexture.IsCreated() = {renderTexture.IsCreated()}");
+			//Log.LogOutput($"renderTexture.IsCreated() = {renderTexture.IsCreated()}"); // 4.0.0 rewrite 9-12-24
 
-            for (int e = 0; e < Display.displays.Length; e++)
+			for (int e = 0; e < Display.displays.Length; e++)
             {
                 if (!Display.displays[e].active)
                     continue;
@@ -118,9 +118,9 @@ namespace DoDad.XSplitScreen.Components
                 var camera = cameras[cameras.Count - 1];
                 camera.targetDisplay = e;
 
-                Log.LogOutput($"Created camera for display {e}");
-            }
-        }
+				//Log.LogOutput($"Created camera for display {e}"); // 4.0.0 rewrite 9-12-24
+			}
+		}
         private void DestroyCameras()
         {
             foreach (var camera in cameras)
@@ -138,27 +138,27 @@ namespace DoDad.XSplitScreen.Components
             var method1 = typeof(ThreeEyedGames.Decal).GetMethod("OnWillRenderObject", BindingFlags.NonPublic | BindingFlags.Instance);
             var method2 = typeof(MultiMonitorCameraManager).GetMethod("Decal_OnWillRenderObject", BindingFlags.NonPublic | BindingFlags.Static);
 
-            Log.LogOutput($"Method1 is null? {method1 == null}");
-            Log.LogOutput($"Method2 is null? {method2 == null}");
+			//Log.LogOutput($"Method1 is null? {method1 == null}"); // 4.0.0 rewrite 9-12-24
+			//Log.LogOutput($"Method2 is null? {method2 == null}"); // 4.0.0 rewrite 9-12-24
 
-            onWillRenderObject = (new Hook(method1,
+			onWillRenderObject = (new Hook(method1,
                 method2));
 
             onWillRenderObject.Apply();
 
-            Log.LogOutput($"onWillRenderObject.IsValid ? {onWillRenderObject.IsValid}");
-        }
-        /// <summary>
-        /// Don't add DecaliciousRenderers to multi monitor cameras
-        /// </summary>
-        /// <param name="orig"></param>
-        /// <param name="self"></param>
-        private static void Decal_OnWillRenderObject(Hooks.Decal.orig_OnWillRenderObject orig, ThreeEyedGames.Decal self)
+			//Log.LogOutput($"onWillRenderObject.IsValid ? {onWillRenderObject.IsValid}"); // 4.0.0 rewrite 9-12-24
+		}
+		/// <summary>
+		/// Don't add DecaliciousRenderers to multi monitor cameras
+		/// </summary>
+		/// <param name="orig"></param>
+		/// <param name="self"></param>
+		private static void Decal_OnWillRenderObject(Hooks.Decal.orig_OnWillRenderObject orig, ThreeEyedGames.Decal self)
         {
-            if (!MultiMonitorCameraManager.isActive)
-                Log.LogOutput($"Current camera: {Camera.current?.name}");
+			/*if (!MultiMonitorCameraManager.isActive) // 4.0.0 rewrite 9-12-24
+                Log.LogOutput($"Current camera: {Camera.current?.name}");*/
 
-            if (Camera.current == null)
+			if (Camera.current == null)
                 return;
 
             if (MultiMonitorCameraManager.isActive)

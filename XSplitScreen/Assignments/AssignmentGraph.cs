@@ -191,12 +191,12 @@ namespace DoDad.XSplitScreen.Assignments
             {
                 if (item.position.IsPositive() && item.display.Equals(display))
                 {
-                    if (!nodeGraph.TrySetNodeData(item, item.position))
+					/*if (!nodeGraph.TrySetNodeData(item, item.position)) // 4.0.0 rewrite 9-12-24
                         Log.LogOutput($"LoadAssignmentForDisplay: Unable to assign '{item.profile}' to '{item.position.ToString()}'");
                     else
-                        Log.LogOutput($"LoadAssignmentForDisplay: Found assignment for '{item.profile}'");
-                }
-            }
+                        Log.LogOutput($"LoadAssignmentForDisplay: Found assignment for '{item.profile}'");*/
+				}
+			}
         }
         #endregion
 
@@ -243,8 +243,8 @@ namespace DoDad.XSplitScreen.Assignments
 
             builder.AppendLine($"------ Display {currentDisplay} ------");
 
-            Log.LogOutput(builder);
-        }
-        #endregion
-    }
+			//Log.LogOutput(builder); // 4.0.0 rewrite 9-12-24
+		}
+		#endregion
+	}
 }

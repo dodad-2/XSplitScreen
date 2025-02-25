@@ -147,9 +147,9 @@ namespace DoDad.XSplitScreen.Assignments
 
             File.WriteAllText(filePath, JsonConvert.SerializeObject(internalList, Formatting.Indented));
 
-            Log.LogOutput($"Assignments saved to file", Log.LogLevel.Message);
-        }
-        private static void ReloadAssignments()
+			//Log.LogOutput($"Assignments saved to file", Log.LogLevel.Message); // 4.0.0 rewrite 9-12-24
+		}
+		private static void ReloadAssignments()
         {
             try
             {
@@ -158,13 +158,13 @@ namespace DoDad.XSplitScreen.Assignments
 
                 string filePath = $"{System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\{fileName}";
 
-                if (!File.Exists(filePath) || Plugin.clearAssignmentsOnStart)
+				/*if (!File.Exists(filePath) || Plugin.clearAssignmentsOnStart) // 4.0.0 rewrite 9-12-24
                 {
                     firstLaunch = true;
                     return;
-                }
+                }*/
 
-                internalList.Clear();
+				internalList.Clear();
 
                 internalList = JsonConvert.DeserializeObject<List<Assignment>>(File.ReadAllText(filePath));
 
@@ -175,9 +175,9 @@ namespace DoDad.XSplitScreen.Assignments
             }
             catch (Exception e)
             {
-                Log.LogOutput($"Unable to load assignments: {e}", Log.LogLevel.Error);
-            }
-        }
+				//Log.LogOutput($"Unable to load assignments: {e}", Log.LogLevel.Error); // 4.0.0 rewrite 9-12-24
+			}
+		}
         private static void EnsureAssignmentsExist()
         {
             if (internalList == null)
@@ -190,8 +190,8 @@ namespace DoDad.XSplitScreen.Assignments
                 if (internalList.Where(x => x.profile.Equals(keyPair.Key)).Count() > 0)
                     continue;
 
-                Log.LogOutput($"Creating assignment for '{keyPair.Key}'");
-                internalList.Add(CreateAssignment(keyPair.Key));
+				//Log.LogOutput($"Creating assignment for '{keyPair.Key}'"); // 4.0.0 rewrite 9-12-24
+				internalList.Add(CreateAssignment(keyPair.Key));
 
                 internalList[internalList.Count - 1].color = ColorCatalog.GetMultiplayerColor(colorIndex);
 

@@ -209,9 +209,9 @@ namespace DoDad.XSplitScreen.Components
                     if (assignment.controller == null)
                         assignment.controller = GetFirstAvailableController();
 
-                    Log.LogOutput($"Assignment {assignment.position}, display {assignment.display} controller = {assignment.controller?.name}");
-                }
-            }
+					//Log.LogOutput($"Assignment {assignment.position}, display {assignment.display} controller = {assignment.controller?.name}"); // 4.0.0 rewrite 9-12-24
+				}
+			}
 
             OnAssignmentsChanged();
 
@@ -252,9 +252,9 @@ namespace DoDad.XSplitScreen.Components
             {
                 if (UserManager.AssignSplitscreenUsers(AssignmentManager.assignments.Where(x => x.position.IsPositive()).ToList(), out invalid, out pluginError))
                 {
-                    Log.LogOutput($"Splitscreen enabled", Log.LogLevel.Message);
-                }
-                else
+					//Log.LogOutput($"Splitscreen enabled", Log.LogLevel.Message); // 4.0.0 rewrite 9-12-24
+				}
+				else
                 {
                     var invalidAlternateDisplay = invalid.Where(x => x.display != graph.currentDisplay && x.error != ErrorType.NONE);
 
@@ -263,10 +263,10 @@ namespace DoDad.XSplitScreen.Components
 
                     foreach (Assignment assignment in invalid)
                     {
-                        Log.LogOutput($"Cannot enable splitscreen: {assignment.error}", Log.LogLevel.Message);
-                    }
+						//Log.LogOutput($"Cannot enable splitscreen: {assignment.error}", Log.LogLevel.Message); // 4.0.0 rewrite 9-12-24
+					}
 
-                    if (pluginError != ErrorType.NONE)
+					if (pluginError != ErrorType.NONE)
                     {
                         resolver.token = $"XSS_ERROR_{pluginError}";
                         resolver.isResolved = false;

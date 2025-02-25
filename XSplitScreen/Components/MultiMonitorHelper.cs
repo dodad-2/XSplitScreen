@@ -15,8 +15,8 @@ namespace DoDad.XSplitScreen.Components
         void Update()
         {
             transform.GetComponent<Canvas>().targetDisplay = targetDisplay;
-            Log.LogOutput($"Setting target display to {targetDisplay}");
-            Destroy(this);
+			//Log.LogOutput($"Setting target display to {targetDisplay}"); // 4.0.0 rewrite 9-12-24
+			Destroy(this);
         }
         #endregion
     }

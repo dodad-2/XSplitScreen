@@ -153,15 +153,15 @@ namespace DoDad.XSplitScreen.Components
             UserManager.onSplitscreenEnabled += OnSplitscreenEnabled;
             UserManager.onSplitscreenDisabled += OnSplitscreenDisabled;
 
-            if (Plugin.active)
+			/*if (Plugin.active) // 4.0.0 rewrite 9-12-24
                 OnSplitscreenEnabled();
             else
-                OnSplitscreenDisabled();
-        }
-        #endregion
+                OnSplitscreenDisabled();*/
+		}
+		#endregion
 
-        #region Event Handlers
-        public void OnSubPanelFunction()
+		#region Event Handlers
+		public void OnSubPanelFunction()
         {
             subPanel.SetOpenState(!subPanel.open);
             ShowRemoveButton(!subPanel.open);
@@ -313,12 +313,12 @@ namespace DoDad.XSplitScreen.Components
                 if (node != null && node.neighborRight != null && button != null && button.transform.GetSiblingIndex() == 3)
                     neighborPosition = node.neighborRight.position;
 
-                if (AssignmentWindow.graph.nodeGraph.GetNode(neighborPosition).data == null)
+				/*if (AssignmentWindow.graph.nodeGraph.GetNode(neighborPosition).data == null) // 4.0.0 rewrite 9-12-24
                     AssignmentWindow.AssignUser(assignment, neighborPosition);
                 else
-                    Log.LogOutput($"Unable to assign user: assignment already exists.");
-            }
-            else
+                    Log.LogOutput($"Unable to assign user: assignment already exists.");*/
+			}
+			else
             {
                 if (PlatformSystems.saveSystem.loadedUserProfiles.Count < 2)
                 {
@@ -326,9 +326,9 @@ namespace DoDad.XSplitScreen.Components
                     resolver.isResolved = false;
                 }
 
-                Log.LogOutput($"No unassigned users exist.");
-            }
-        }
+				//Log.LogOutput($"No unassigned users exist."); // 4.0.0 rewrite 9-12-24
+			}
+		}
         public void RemovePanel()
         {
             AssignmentWindow.UnassignUser(current);
