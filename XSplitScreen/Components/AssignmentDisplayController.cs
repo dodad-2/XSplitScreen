@@ -14,7 +14,7 @@ namespace dodad.XSplitscreen.Components
 
 		public void Initialize()
 		{
-			assignmentPrefab ??= Plugin.resources.LoadAsset<GameObject>("assignment.prefab");
+			assignmentPrefab ??= Plugin.Resources.LoadAsset<GameObject>("assignment.prefab");
 
 			// Juice
 

@@ -101,7 +101,7 @@ namespace dodad.XSplitscreen.Components
 
 		private void CreateOptions()
 		{
-			var configPrefab = Plugin.resources.LoadAsset<GameObject>("Option Configurator.prefab");
+			var configPrefab = Plugin.Resources.LoadAsset<GameObject>("Option Configurator.prefab");
 
 			var optionConfiguratorType = typeof(OptionConfigurator);
 

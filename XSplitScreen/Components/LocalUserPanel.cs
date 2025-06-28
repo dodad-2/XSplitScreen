@@ -229,7 +229,7 @@ namespace dodad.XSplitscreen.Components
 					juice.TransitionPanFromLeft();
 				});
 
-				localUserPrefab ??= Plugin.resources.LoadAsset<GameObject>("Local User.prefab");
+				localUserPrefab ??= Plugin.Resources.LoadAsset<GameObject>("Local User.prefab");
 
 				if (LocalUserSlot.Instances == null || LocalUserSlot.Instances.Count < RoR2Application.maxLocalPlayers)
 					AddSlot();
@@ -341,14 +341,14 @@ namespace dodad.XSplitscreen.Components
 
 			if (LocalUserSlot.DeviceIcons == null)
 			{
-				var availableIcons = Plugin.resources.GetAllAssetNames()
+				var availableIcons = Plugin.Resources.GetAllAssetNames()
 					.Where(x => x.ToLower().Contains("device_")).ToList();
 
 				LocalUserSlot.DeviceIcons = new Dictionary<string, Sprite>();
 
 				foreach (var icon in availableIcons)
 					LocalUserSlot.DeviceIcons.Add(icon.Split("/")
-						.Reverse().First().Replace("device_", "").Replace(".png", ""), Plugin.resources.LoadAsset<Sprite>(icon));
+						.Reverse().First().Replace("device_", "").Replace(".png", ""), Plugin.Resources.LoadAsset<Sprite>(icon));
 			}
 
 			AllowChanges = true;

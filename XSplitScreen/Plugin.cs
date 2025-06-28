@@ -40,8 +40,8 @@ namespace dodad.XSplitscreen
 		//-----------------------------------------------------------------------------------------------------------
 
 		public static Plugin Singleton { get; private set; }
-        public static AssetBundle resources { get; private set; }
-        private static HGButton mainMenuTitleButton;
+        public static AssetBundle Resources { get; private set; }
+        private static HGButton MainMenuTitleButton;
 		#endregion
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -64,7 +64,7 @@ namespace dodad.XSplitscreen
             if (!LoadAssets())
                 return;
             else
-                Log.Print($"Loaded '{resources.GetAllAssetNames().Length}' assets");
+                Log.Print($"Loaded '{Resources.GetAllAssetNames().Length}' assets");
 
             // Handle patches
 
@@ -276,9 +276,9 @@ namespace dodad.XSplitscreen
                 var resourceStream = assembly.GetManifestResourceStream(assembly.GetManifestResourceNames().Last());
 
                 using (resourceStream)
-                    resources = AssetBundle.LoadFromStream(resourceStream);
+                    Resources = AssetBundle.LoadFromStream(resourceStream);
 
-                return resources != null;
+                return Resources != null;
 			}
             catch(Exception e)
             {
@@ -328,7 +328,7 @@ namespace dodad.XSplitscreen
         /// </summary>
 		private static void CreateTitleUI()
         {
-            if (mainMenuTitleButton != null)
+            if (MainMenuTitleButton != null)
                 return;
 
             // Main menu title button
@@ -381,7 +381,7 @@ namespace dodad.XSplitscreen
 
 			try
 			{
-				GameObject menuPrefab = resources.LoadAsset<GameObject>("menu.prefab");
+				GameObject menuPrefab = Resources.LoadAsset<GameObject>("menu.prefab");
 
 				var menu = GameObject.Instantiate(menuPrefab);
 				menu.name = $"[Display {id}] MENU: XSplitscreen";
@@ -495,7 +495,7 @@ namespace dodad.XSplitscreen
         /// </summary>
 		private static void OnMainMenuInitialized()
         {
-            if (mainMenuTitleButton != null)
+            if (MainMenuTitleButton != null)
                 return;
 
             UIHelper.Initialize();
@@ -574,7 +574,7 @@ namespace dodad.XSplitscreen
 		/// <param name="__0"></param>
 		private static void SetButtonInteractable(MainMenuController __instance, bool __0)
         {
-            mainMenuTitleButton.interactable = __0;
+            MainMenuTitleButton.interactable = __0;
 		}
 
 		//-----------------------------------------------------------------------------------------------------------

@@ -91,6 +91,8 @@ namespace dodad.XSplitscreen.Components
 				mainPlayer = LocalUserManager.GetRewiredMainPlayer();
 				mainInput = new LocalUserSlot.InputBank();
 			}
+
+			gameObject.SetActive(false);
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -107,14 +109,11 @@ namespace dodad.XSplitscreen.Components
 
 		public new void Update()
 		{
-			if (!initialized)
-				CreateUI();
-
 			base.Update();
 
 			if (id != 0)
 				return;
-
+			
 			mainInput.Update(mainPlayer);
 
 			/*if (mainPlayer.GetButton(7))
@@ -223,6 +222,9 @@ namespace dodad.XSplitscreen.Components
 
 		public override void OnEnter(MainMenuController mainMenuController)
 		{
+			if(!initialized)
+				CreateUI();
+
 			if (id != 0)
 			{
 				gameObject.SetActive(true);
@@ -270,12 +272,6 @@ namespace dodad.XSplitscreen.Components
 
 		private void CreateUI()
 		{
-			if (MainMenuController.instance == null)
-				return;
-
-			if(id == 0)
-				gameObject.SetActive(false);
-
 			// Create lower left buttons
 
 			var mainPanel = transform.Find("Main Panel");
