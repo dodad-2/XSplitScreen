@@ -4,19 +4,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using static Dodad.XSplitscreen.Graph;
 
-namespace dodad.XSplitscreen.Components
+namespace Dodad.XSplitscreen.Components
 {
+
+	/// <summary>
+	/// Controls the display and lifecycle of AssignmentDisplay objects for assignment rectangles.
+	/// </summary>
 	public class AssignmentDisplayController : MonoBehaviour
 	{
-		private Dictionary<int, AssignmentDisplay> assignments = new();
-		private static GameObject assignmentPrefab;
+		private static GameObject AssignmentPrefab;
 
-		public void Initialize()
+		// Holds currently active assignment displays, keyed by assignment id
+		private readonly Dictionary<int, AssignmentDisplay> _assignments = new();
+
+		public AssignmentPanel Panel => _panel;
+		private AssignmentPanel _panel;
+		private Transform _assignmentArea;
+
+		/// <summary>
+		/// Initializes the assignment display controller and sets up UI juice transitions.
+		/// </summary>
+		public void Initialize(AssignmentPanel panel)
 		{
-			assignmentPrefab ??= Plugin.Resources.LoadAsset<GameObject>("assignment.prefab");
-
-			// Juice
+			AssignmentPrefab ??= Plugin.Resources.LoadAsset<GameObject>("Assignment.prefab");
 
 			var canvas = gameObject.AddComponent<CanvasGroup>();
 			var juice = gameObject.AddComponent<UIJuice>();
@@ -25,60 +37,108 @@ namespace dodad.XSplitscreen.Components
 			juice.transitionDuration = 0.5f;
 			juice.originalAlpha = 1f;
 
+			// Fade in on menu entry
 			SplitscreenMenuController.Singleton.onEnter.AddListener(() =>
 			{
 				juice.TransitionAlphaFadeIn();
 			});
+
+			this._panel = panel;
+
+			_assignmentArea = transform.Find("VerticalLayout/Middle/AssignmentArea");
 		}
 
-		public void UpdateDisplay(Dictionary<int, Rect> display)
+		/// <summary>
+		/// Updates the assignment display to match the provided assignment rectangles.
+		/// </summary>
+		/// <param name="display">Dictionary of assignment IDs and their target rectangles.</param>
+		public void UpdateDisplay(IReadOnlyDictionary<int, Face> display)
 		{
 			// Add or update assignments
-
-			foreach(var item in display)
+			foreach (var item in display)
 			{
-				if(!assignments.ContainsKey(item.Key))
+				if (!_assignments.ContainsKey(item.Key))
 					AddAssignment(item.Key, item.Value);
 				else
 					UpdateAssignment(item.Key, item.Value);
 			}
 
-			// Remove extras
-
-			var assignmentsCopy = assignments.ToList();
-
-			foreach (var assignment in assignmentsCopy)
+			// Remove assignments that are not present in the display dictionary
+			// Use ToList to avoid modification during iteration
+			foreach (var assignment in _assignments.ToList())
 			{
 				if (!display.ContainsKey(assignment.Key))
 				{
-					assignments.Remove(assignment.Key);
 					GameObject.Destroy(assignment.Value.gameObject);
+					_assignments.Remove(assignment.Key);
 				}
 			}
 		}
 
-		private void AddAssignment(int id, Rect rect)
+		/// <summary>
+		/// Instantiates and adds a new AssignmentDisplay.
+		/// </summary>
+		private void AddAssignment(int id, Face face)
 		{
-			var assignment = Instantiate(assignmentPrefab).AddComponent<AssignmentDisplay>();
+			var assignmentGO = Instantiate(AssignmentPrefab, _assignmentArea);
+			var assignment = assignmentGO.AddComponent<AssignmentDisplay>();
 			var rectTransform = assignment.GetComponent<RectTransform>();
 
-			rectTransform.SetParent(transform);
-
-			var juice = rectTransform.gameObject.AddComponent<UIJuice>();
-			var canvasGroup = juice.gameObject.AddComponent<CanvasGroup>();
-
+			// Setup UIJuice for the assignment display
+			var juice = assignmentGO.AddComponent<UIJuice>();
+			var canvasGroup = assignmentGO.AddComponent<CanvasGroup>();
 			juice.canvasGroup = canvasGroup;
 			juice.transitionDuration = 0.5f;
 			juice.originalAlpha = 1f;
 
-			assignment.Initialize(id, rect);
+			assignment.Initialize(id, face, this);
 
-			assignments.Add(id, assignment);
+			_assignments.Add(id, assignment);
 		}
 
-		private void UpdateAssignment(int id, Rect rect)
+		/// <summary>
+		/// Updates an existing AssignmentDisplay.
+		/// </summary>
+		private void UpdateAssignment(int id, Face face)
 		{
-			assignments[id].UpdateAssignment(rect);
+			if (_assignments.TryGetValue(id, out var assignment))
+			{
+				assignment.UpdateAssignment(face);
+			}
+		}
+
+		public void Subdivide(Face face, bool vertical)
+		{
+			_panel.Subdivide(face, vertical);
+		}
+
+		public void Remove(Face face) => _panel.Remove(face);
+
+		public void AssignClaimToKeyboard(DisplayClaim claim)
+		{
+			foreach(var panel in LocalUserPanel.Instances)
+			{
+				var slots = panel.UserSlots;
+
+				foreach(var slot in slots)
+				{
+					if(slot.IsKeyboardUser)
+					{
+						var configurator = slot.GetComponentInChildren<AssignmentConfigurator>();
+
+						if(configurator == null)
+						{
+							Log.Print("Configurator not found");
+
+							return;
+						}
+
+						configurator.ReceiveClaim(claim);
+
+						return;
+					}
+				}
+			}
 		}
 	}
 }

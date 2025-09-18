@@ -3,225 +3,325 @@ using RoR2.UI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace dodad.XSplitscreen.Components
+namespace Dodad.XSplitscreen.Components
 {
+	/// <summary>
+	/// Configurator for selecting user profiles.
+	/// Handles profile selection, display, and assignment to user slots.
+	/// </summary>
 	public class ProfileConfigurator : OptionConfigurator
 	{
+		#region Static Fields
+
+		/// <summary>
+		/// Tracks currently active profiles to prevent duplicates.
+		/// </summary>
+		private static List<string> _activeProfiles;
+
+		/// <summary>
+		/// Event triggered when a profile is selected.
+		/// </summary>
+		private static Action _onProfileSelect;
+
+		#endregion
+
+		#region Private Fields
+
+		private string[] _profileKeys;
+		private int _profileIndex;
+		//private HGTextMeshProUGUI _messageTextMesh;
+		private bool _isOpen;
+
+		#endregion
+
+		#region OptionConfigurator Implementation
+
+		/// <summary>
+		/// Always display profile configurator first in the list.
+		/// </summary>
 		public override int GetPriority() => 0;
 
-		public override string GetName() => "XSS_CONFIG_PROFILE";
+		/// <summary>
+		/// Localization token for the profile configurator.
+		/// </summary>
+		public override string GetName() => Options.Slot.Profile == null ? "XSS_CONFIG_PROFILE" : Options.Slot.Profile.name;
 
-		private static List<string> ActiveProfiles;
-		private static Action OnProfileSelect;
+		#endregion
 
-		private string[] profileKeys;
+		#region Unity Lifecycle
 
-		private int profileIndex;
-
-		private HGTextMeshProUGUI messageTextMesh;
-
-		private string debugName => (transform?.parent?.parent?.name) ?? "null";
-
-		private bool isOpen;
-
-		//-----------------------------------------------------------------------------------------------------------
-
+		/// <summary>
+		/// Set up the UI components when the configurator is created.
+		/// </summary>
 		public void Awake()
 		{
-			var messageText = UIHelper.GetPrefab(UIHelper.EUIPrefabIndex.SimpleText);
-
-			var messageLayoutElement = messageText.AddComponent<LayoutElement>();
-
-			messageLayoutElement.flexibleWidth = 1f;
-
-			messageText.transform.SetParent(transform, false);
-
-			Destroy(messageText.GetComponent<LanguageTextMeshController>());
-
-			messageTextMesh = messageText.GetComponent<HGTextMeshProUGUI>();
-
-			//Log.Print($"ProfileConfigurator.Awake: '{transform.parent.parent.name}'");
-			SetMessage(null, Color.white);
-
-			messageText.gameObject.SetActive(false);
+			EnableConfirmButton = true;
+			//SetupMessageUI();
 		}
 
-		//-----------------------------------------------------------------------------------------------------------
-
+		/// <summary>
+		/// Clean up when the configurator is destroyed.
+		/// </summary>
 		public void OnDestroy()
 		{
 			ReleaseProfile();
 
-			if (isOpen)
+			if (_isOpen)
 			{
-				//Log.Print($"ProfileConfigurator.OnDestroy: '{transform.parent.parent.name}'");
-				OnProfileSelect -= OnProfileSelected;
+				_onProfileSelect -= OnProfileSelected;
 			}
 		}
 
-		//-----------------------------------------------------------------------------------------------------------
+		#endregion
 
-		public void SetMessage(string text, Color color)
+		#region UI Setup
+
+		/// <summary>
+		/// Sets up the message UI for displaying the selected profile name.
+		/// </summary>
+		private void SetupMessageUI()
 		{
-			//Log.Print($"ProfileConfigurator.SetMessage: '{transform.parent.parent.name}', text = '{(text == null ? "null" : text)}'");
-
-			messageTextMesh.text = text;
-			messageTextMesh.color = color;
-			messageTextMesh.gameObject.SetActive(text != null);
+			var messageText = UIHelper.GetPrefab(UIHelper.EUIPrefabIndex.SimpleText);
+			var messageLayoutElement = messageText.AddComponent<LayoutElement>();
+			messageLayoutElement.flexibleWidth = 1f;
+			messageText.transform.SetParent(transform, false);
+			Destroy(messageText.GetComponent<LanguageTextMeshController>());
+			//_messageTextMesh = messageText.GetComponent<HGTextMeshProUGUI>();
+			SetMessage(null, Color.white);
+			messageText.gameObject.SetActive(false);
 		}
 
-		//-----------------------------------------------------------------------------------------------------------
+		#endregion
 
+		#region Profile Management
+
+		/// <summary>
+		/// Displays a message in the UI with the specified color.
+		/// </summary>
+		public void SetMessage(string text, Color color)
+		{
+			Options.SetMessage(text, color);
+			/*_messageTextMesh.text = text;
+			_messageTextMesh.color = color;
+			_messageTextMesh.gameObject.SetActive(text != null);*/
+		}
+
+		/// <summary>
+		/// Opens the profile selector interface.
+		/// </summary>
 		public override void Open()
 		{
 			Log.Print($"ProfileConfigurator.Open: '{transform.parent.parent.name}' subscribing");
 
-			ActiveProfiles ??= new();
+			_activeProfiles ??= new List<string>();
 
 			OnProfileSelected();
-			OnProfileSelect += OnProfileSelected;
+			_onProfileSelect += OnProfileSelected;
 
-			isOpen = true;
+			_isOpen = true;
 		}
-
-		//-----------------------------------------------------------------------------------------------------------
-
-		public override void ForceClose()
-		{
-
-		}
-
-		//-----------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Reset selection options as another user has selected a profile
+		/// Forced close without selecting a profile.
+		/// </summary>
+		public override void ForceClose()
+		{
+			if (_isOpen)
+			{
+				_onProfileSelect -= OnProfileSelected;
+				_isOpen = false;
+				SetMessage(null, Color.white);
+			}
+		}
+
+		/// <summary>
+		/// Updates the list of available profiles when any profile is selected.
 		/// </summary>
 		private void OnProfileSelected()
 		{
-			Log.Print($"ProfileConfigurator.OnProfileSelected: '{transform.parent.parent.name}' invoked");
+			_profileIndex = 0;
 
-			profileIndex = 0;
-
-			string currentProfile = options.slot.Profile?.fileName;
+			string currentProfile = Options.Slot.Profile?.fileName;
 
 			// Find valid profiles (current one and those not active)
-
-			profileKeys = PlatformSystems.saveSystem.loadedUserProfiles.Keys
-				.Where(x => 
-					x == currentProfile || 
-					!ActiveProfiles.Contains(x))
+			_profileKeys = PlatformSystems.saveSystem.loadedUserProfiles.Keys
+				.Where(x =>
+					x == currentProfile ||
+					!_activeProfiles.Contains(x))
 				.ToArray();
 
-			// If the current profile exists in the pool, get the new index
-
+			// If the current profile exists in the pool, set it as the selected index
 			if (currentProfile != null)
 			{
-				int profileLength = profileKeys.Length;
-
-				for (int e = 0; e < profileLength; e++)
+				for (int i = 0; i < _profileKeys.Length; i++)
 				{
-					if (profileKeys[e] == currentProfile)
+					if (_profileKeys[i] == currentProfile)
 					{
-						profileIndex = e;
-
+						_profileIndex = i;
 						break;
 					}
 				}
 			}
 
-			if (profileKeys.Length == 0)
-				Log.Print($"Need a guest profile!");
+			if (_profileKeys.Length == 0)
+				Log.Print("Need a guest profile!");
 
 			UpdateProfileName();
+			UpdateNavigatorCount();
 		}
 
-		//-----------------------------------------------------------------------------------------------------------
-
-		private void SelectProfile(string profile)
+		private void UpdateNavigatorCount()
 		{
-			ReleaseProfile();
-
-			if (profile != null)
-			{
-				ActiveProfiles.Add(profile);
-
-				options.slot.Profile = PlatformSystems.saveSystem.GetProfile(profile);
-			}
-
-			Log.Print($"ProfileConfigurator.SelectProfile: '{transform.parent.parent.name}' unsubscribing, profile = '{profile}'");
-
-			OnProfileSelect -= OnProfileSelected;
-			OnProfileSelect?.Invoke();
-			OnFinished.Invoke();
-
-			SetMessage(null, Color.white);
-
-			isOpen = false;
+			NavigatorCount = _profileKeys.Length;
 		}
 
-		//-----------------------------------------------------------------------------------------------------------
-
-		private void ReleaseProfile()
+		private void UpdateNavigatorIndex()
 		{
-			//Log.Print($"ProfileConfigurator.ReleaseProfile: '{transform.parent.parent.name}'");
-
-			if (options.slot.Profile != null)
-				ActiveProfiles.Remove(options.slot.Profile.fileName);
-
-			options.slot.Profile = null;
+			NavigatorIndex = _profileIndex;
 		}
-
-		//-----------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Check input and update accordingly
+		/// Selects a profile and assigns it to the slot.
+		/// </summary>
+		private void SelectProfile(string profileName)
+		{
+			if(_activeProfiles.Contains(profileName) && (Options.Slot.Profile == null ? true : Options.Slot.Profile.fileName != profileName))
+			{
+				OnProfileSelected();
+
+				return;
+			}
+
+			ReleaseProfile();
+
+			if (profileName != null)
+			{
+				_activeProfiles.Add(profileName);
+				Options.Slot.Profile = PlatformSystems.saveSystem.GetProfile(profileName);
+			}
+
+			Log.Print($"ProfileConfigurator.SelectProfile: '{transform.parent.parent.name}' unsubscribing, profile = '{profileName}'");
+
+			_onProfileSelect -= OnProfileSelected;
+
+			_isOpen = false;
+
+			OnFinished?.Invoke();
+		}
+
+		/// <summary>
+		/// Releases the current profile from the active list.
+		/// </summary>
+		private void ReleaseProfile()
+		{
+			if (Options.Slot.Profile != null)
+				_activeProfiles.Remove(Options.Slot.Profile.fileName);
+
+			Options.Slot.Profile = null;
+		}
+
+		#endregion
+
+		#region Input Handling
+
+		public override void OnCancel()
+		{
+
+		}
+
+		public override void OnConfirm()
+		{
+			Log.Print($" ------------ Button Press (south) (ConfiguratorUpdate '{transform.parent.parent.name}') ------------");
+
+			// Safety check in case there are no profiles
+			if (_profileKeys != null && _profileKeys.Length > 0)
+			{
+				SelectProfile(_profileKeys[_profileIndex]);
+			}
+			else
+			{
+				// Handle the no-profile case
+				SelectProfile(null);
+			}
+		}
+
+		/// <summary>
+		/// Handles navigation input from the user interface.
+		/// </summary>
+		public override void OnNavigate(int direction)
+		{
+			if (direction == -1)
+				SelectPreviousProfile();
+			else
+				SelectNextProfile();
+
+			UpdateNavigatorIndex();
+		}
+
+		public override void OnNavigateIndex(int index)
+		{
+			_profileIndex = (int) Mathf.Clamp(index, 0, _profileKeys.Length - 1);
+			UpdateProfileName();
+			UpdateNavigatorIndex();
+		}
+
+		/// <summary>
+		/// Updates the configurator based on input.
 		/// </summary>
 		public override void ConfiguratorUpdate()
 		{
-			if (options.slot.input.Left)
+			if (Options.Slot.Input.Up)
 			{
-				Log.Print($" ------------ Button Press (left) (ConfiguratorUpdate '{transform.parent.parent.name}') ------------");
-				PreviousProfile();
-				UpdateProfileName();
+				OnNavigate(-1);
 			}
-			else if(options.slot.input.Right)
+			else if (Options.Slot.Input.Down)
 			{
-				Log.Print($" ------------ Button Press (right) (ConfiguratorUpdate '{transform.parent.parent.name}') ------------");
-				NextProfile();
-				UpdateProfileName();
+				OnNavigate(1);
 			}
-			else if (options.slot.input.South)
+			else if (Options.Slot.Input.South)
 			{
-				Log.Print($" ------------ Button Press (south) (ConfiguratorUpdate '{transform.parent.parent.name}') ------------");
-				SelectProfile(profileKeys[profileIndex]);
+				OnConfirm();
 			}
 		}
 
-		//-----------------------------------------------------------------------------------------------------------
+		/// <summary>
+		/// Selects the previous profile in the list.
+		/// </summary>
+		private void SelectPreviousProfile()
+		{
+			Log.Print($" ------------ Button Press (left) (ConfiguratorUpdate '{transform.parent.parent.name}') ------------");
+			_profileIndex = (int) Mathf.Clamp(_profileIndex - 1, 0, _profileKeys.Length - 1);
+			UpdateProfileName();
+		}
 
 		/// <summary>
-		/// Update the label
+		/// Selects the next profile in the list.
+		/// </summary>
+		private void SelectNextProfile()
+		{
+			Log.Print($" ------------ Button Press (right) (ConfiguratorUpdate '{transform.parent.parent.name}') ------------");
+			_profileIndex = (int) Mathf.Clamp(_profileIndex + 1, 0, _profileKeys.Length - 1);
+			UpdateProfileName();
+		}
+
+		#endregion
+
+		#region UI Updates
+
+		/// <summary>
+		/// Updates the displayed profile name.
 		/// </summary>
 		private void UpdateProfileName()
 		{
-			//Log.Print($"ProfileConfigurator.UpdateProfileName: '{transform.parent.parent.name}'");
-
-			if (profileKeys.Length == 0)
-				SetMessage("Guest", new Color(1f, 1f, 0f));
+			if (_profileKeys == null || _profileKeys.Length == 0)
+				Options.SetMessage("Guest", new Color(1f, 1f, 0f));
 			else
-				SetMessage(PlatformSystems.saveSystem.GetProfile(profileKeys[profileIndex]).name, new Color(1f, 1f, 0f));
+				Options.SetMessage(PlatformSystems.saveSystem.GetProfile(_profileKeys[_profileIndex]).name, new Color(1f, 1f, 0f));
 		}
 
-		//-----------------------------------------------------------------------------------------------------------
-
-		private void NextProfile() => profileIndex = (int) Mathf.Clamp(profileIndex + 1, 0, profileKeys.Length - 1);
-
-		//-----------------------------------------------------------------------------------------------------------
-
-		private void PreviousProfile() => profileIndex = (int) Mathf.Clamp(profileIndex - 1, 0, profileKeys.Length - 1);
+		#endregion
 	}
 }

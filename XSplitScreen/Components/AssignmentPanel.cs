@@ -3,18 +3,21 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
+using UnityEngine.UI;
 
-namespace dodad.XSplitscreen.Components
+namespace Dodad.XSplitscreen.Components
 {
-	internal class AssignmentPanel : MonoBehaviour
+	public class AssignmentPanel : MonoBehaviour
 	{
 		private static List<AssignmentPanel> Instances;
 
-		private Graph graph;
-		private AssignmentDisplayController display;
+		public AssignmentDisplayController Display => _display;
+		private Graph _graph;
+		private AssignmentDisplayController _display;
+		private Image _initialImage;
+		private MPButton[] _insertButtons;
 
-		private int targetDisplay;
-
+		private int _targetDisplay;
 		//-----------------------------------------------------------------------------------------------------------
 
 		public void Initialize()
@@ -22,11 +25,39 @@ namespace dodad.XSplitscreen.Components
 			Instances ??= new();
 			Instances.Add(this);
 
-			graph = new Graph();
+			_display = transform.Find("DisplayContainer/Display").gameObject.AddComponent<AssignmentDisplayController>();
 
-			display = transform.Find("Display").gameObject.AddComponent<AssignmentDisplayController>();
+			_display.Initialize(this);
 
-			display.Initialize();
+			// Initial button
+
+			var plusTex = Plugin.Resources.LoadAsset<Texture2D>("plus.png");
+			var plusSprite = Sprite.Create(plusTex, new Rect(0, 0, plusTex.width, plusTex.height), new Vector2(0.5f, 0.5f));
+
+			_initialImage = new GameObject("AddInitialButton").AddComponent<Image>();
+			_initialImage.sprite = plusSprite;
+			_initialImage.transform.SetParent(_display.transform.Find("VerticalLayout/Middle/AssignmentArea"));
+			_initialImage.transform.localScale = Vector3.one;
+			_initialImage.transform.localPosition = Vector3.zero;
+			_initialImage.GetComponent<RectTransform>().sizeDelta = new Vector2(64f, 64f);
+			_initialImage.gameObject.AddComponent<MPButton>().onClick.AddListener(() => AddInitialFace());
+
+			// Reset button
+
+			_display.transform.Find("VerticalLayout/Bottom/ResetButton").gameObject.AddComponent<MPButton>().onClick.AddListener(() => ResetGraph());
+
+			// Insert buttons
+
+			_insertButtons = new MPButton[4];
+			_insertButtons[0] = _display.transform.Find("VerticalLayout/Top/InsertTopButton").gameObject.AddComponent<MPButton>();
+			_insertButtons[1] = _display.transform.Find("VerticalLayout/Bottom/InsertBottomButton").gameObject.AddComponent<MPButton>();
+			_insertButtons[2] = _display.transform.Find("VerticalLayout/Middle/InsertLeftButton").gameObject.AddComponent<MPButton>();
+			_insertButtons[3] = _display.transform.Find("VerticalLayout/Middle/InsertRightButton").gameObject.AddComponent<MPButton>();
+
+			_insertButtons[0].onClick.AddListener(() => InsertFromEdge("top"));
+			_insertButtons[1].onClick.AddListener(() => InsertFromEdge("bottom"));
+			_insertButtons[2].onClick.AddListener(() => InsertFromEdge("left"));
+			_insertButtons[3].onClick.AddListener(() => InsertFromEdge("right"));
 
 			// Juice
 
@@ -42,42 +73,43 @@ namespace dodad.XSplitscreen.Components
 				juice.TransitionAlphaFadeIn();
 			});
 
-			OnGraphUpdated();
+			_graph = new(1);
+			UpdateButtonStates();
+		}
 
-			// TODO: Load from JSON
+		private void Start()
+		{
+			if (_targetDisplay != 0)
+				return;
 
-			/*// Graph tests
+			// Online Toggle
 
-			assignmentGraph = new Graph();
-
-			var panels = assignmentGraph.GetAllPanelRects();
-
-			foreach (var panel in panels)
-				Log.Print($"Panel A: '{panel.Key}' = '{panel.Value}'");
-
-			assignmentGraph.nodes = new int[6][];
-
-			for(int x = 0; x < 6; x++)
+			if (_targetDisplay == 0)
 			{
-				assignmentGraph.nodes[x] = new int[3];
+				var toggleContainer = _display.transform.Find("VerticalLayout/Bottom/Filler");
+				var containerLayout = toggleContainer.gameObject.AddComponent<HorizontalLayoutGroup>();
+				containerLayout.spacing = 24;
 
-				for (int y = 0; y < 3; y++)
-				{
-					if(x < 3)
-						assignmentGraph.nodes[x][y] = 0;
-					else
-						assignmentGraph.nodes[x][y] = 1;
-				}
+				var onlineToggle = UIHelper.GetPrefab(UIHelper.EUIPrefabIndex.Toggle);
+				onlineToggle.transform.SetParent(toggleContainer.transform);
+				onlineToggle.transform.localPosition = Vector3.zero;
+				onlineToggle.transform.localScale = Vector3.one;
+				var toggleLayout = onlineToggle.AddComponent<LayoutElement>();
+				toggleLayout.flexibleWidth = 1;
+				toggleLayout.preferredWidth = 96;
+
+				onlineToggle.GetComponentInChildren<MPToggle>().SetIsOnWithoutNotify(false);
+				onlineToggle.gameObject.SetActive(true);
+
+				var onlineText = UIHelper.GetPrefab(UIHelper.EUIPrefabIndex.SimpleText);
+				onlineText.transform.SetParent(toggleContainer.transform);
+				onlineText.transform.localPosition = Vector3.zero;
+				onlineText.transform.localScale = Vector3.one;
+				onlineText.GetComponent<HGTextMeshProUGUI>().enableWordWrapping = false;
+				onlineText.GetComponent<HGTextMeshProUGUI>().raycastTarget = false;
+				onlineText.GetComponent<LanguageTextMeshController>().token = "XSS_ONLINE";
+				onlineText.gameObject.SetActive(true);
 			}
-
-			panels = assignmentGraph.GetAllPanelRects();
-
-			Log.Print(" ------------- ");
-
-			foreach (var panel in panels)
-				Log.Print($"Panel B: '{panel.Key}' = '{panel.Value}'");*/
-
-			//
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -91,146 +123,47 @@ namespace dodad.XSplitscreen.Components
 
 		private void OnGraphUpdated()
 		{
-			display.UpdateDisplay(graph.GetAllPanelRects());
+			_display.UpdateDisplay(_graph.Faces);
+			UpdateButtonStates();
 		}
 
-		//-----------------------------------------------------------------------------------------------------------
-
-		internal class Graph
+		public void Subdivide(Graph.Face face, bool vertical)
 		{
-			public Action OnGraphUpdated;
+			_graph.Subdivide(face.Index, vertical);
+			OnGraphUpdated();
+		}
 
-			internal int[][] nodes;
+		public void Remove(Graph.Face face)
+		{
+			_graph.RemoveFace(face.Index);
+			OnGraphUpdated();
+		}
 
-			public Graph()
-			{
-				nodes = new int[1][];
-				nodes[0] = new int[1];
-				nodes[0][0] = -1;
-			}
+		private void AddInitialFace()
+		{
+			_graph.AddInitialFace();
+			OnGraphUpdated();
+		}
 
-			//-----------------------------------------------------------------------------------------------------------
+		private void UpdateButtonStates()
+		{
+			bool hasFaces = _graph.Faces.Count != 0;
+			_initialImage.enabled = !hasFaces;
 
-			/// <summary>
-			/// Calculate rects for each panel and return them
-			/// </summary>
-			/// <returns></returns>
-			public Dictionary<int, Rect> GetAllPanelRects()
-			{
-				Dictionary<int, Rect> panels = new Dictionary<int, Rect>();
+			foreach (var button in _insertButtons)
+				button.interactable = hasFaces;
+		}
 
-				// Loop through all nodes and find the maximums of each group
+		private void ResetGraph()
+		{
+			_graph.Clear();
+			OnGraphUpdated();
+		}
 
-				int xMax = nodes.Length;
-				int yMax = nodes[0].Length;
-
-				for (int x = 0; x < xMax; x++)
-				{
-					for(int y = 0;  y < yMax; y++)
-					{
-						int id = nodes[x][y];
-
-						if (!panels.ContainsKey(id))
-							panels.Add(id, GetPanelRect(id));
-					}
-				}
-
-				return panels;
-			}
-
-			//-----------------------------------------------------------------------------------------------------------
-
-			/// <summary>
-			/// Add a new panel to the graph
-			/// </summary>
-			/// <param name="id"></param>
-			/// <param name="width"></param>
-			/// <param name="height"></param>
-			/// <param name="split">If true, the nearest panel will be split in half. If false the entire graph will be shifted</param>
-			public void AddPanel(int x, int y, bool split = true)
-			{
-				int graphWidth = nodes.Length;
-				int graphHeight = nodes[0].Length;
-
-				if (graphWidth == 1 && graphHeight == 1)
-					split = false;
-
-				if(split)
-				{
-
-				}
-				else
-				{
-
-				}
-
-				OnGraphUpdated?.Invoke();
-			}
-
-			//-----------------------------------------------------------------------------------------------------------
-
-			/// <summary>
-			/// Get a Rect describing the screen coverage of a particular panel
-			/// </summary>
-			/// <param name="id"></param>
-			/// <returns></returns>
-			public Rect GetPanelRect(int id)
-			{
-				float xBounds = nodes.Length;
-				float yBounds = nodes[0].Length;
-
-				GetPanelCoordinates(id, xBounds, yBounds, out float maxX, out float minX, out float maxY, out float minY);
-
-				// Calculate rect by dimensions
-
-				maxX++;
-				maxY++;
-
-				//Log.Print($"GetCoverage: id = '{id}', xBounds = '{xBounds}', yBounds = '{yBounds}', minX = '{minX}', maxX = '{maxX}', minY = '{minY}', maxY = '{maxY}'");
-
-				Rect rect = new Rect(
-					minX / xBounds, 
-					minY / yBounds,
-					(maxX - minX) / xBounds,
-					(maxY - minY) / yBounds);
-
-				return rect;
-			}
-
-			//-----------------------------------------------------------------------------------------------------------
-			
-			/// <summary>
-			/// Get the upper and lower panel coordinates
-			/// </summary>
-			/// <param name="panelId"></param>
-			public void GetPanelCoordinates(int id, float xBounds, float yBounds,
-				out float maxX, out float minX, out float maxY, out float minY)
-			{
-				maxX = int.MinValue;
-				minX = int.MaxValue;
-
-				maxY = int.MinValue;
-				minY = int.MaxValue;
-
-				for (int x = 0; x < xBounds; x++)
-				{
-					for (int y = 0; y < yBounds; y++)
-					{
-						if (nodes[x][y] == id)
-						{
-							if (x < minX)
-								minX = x;
-							if (x > maxX)
-								maxX = x;
-
-							if (y < minY)
-								minY = y;
-							if (y > maxY)
-								maxY = y;
-						}
-					}
-				}
-			}
+		private void InsertFromEdge(string edge)
+		{
+			_graph.InsertFromEdge(edge);
+			OnGraphUpdated();
 		}
 	}
 }

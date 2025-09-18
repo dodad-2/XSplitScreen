@@ -5,7 +5,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace dodad.XSplitscreen.Components
+namespace Dodad.XSplitscreen.Components
 {
 	public abstract class FloatingElement : MonoBehaviour
 	{

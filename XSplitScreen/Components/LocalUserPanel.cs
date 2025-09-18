@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
 
-namespace dodad.XSplitscreen.Components
+namespace Dodad.XSplitscreen.Components
 {
 	internal class LocalUserPanel : MonoBehaviour
 	{
@@ -23,13 +23,19 @@ namespace dodad.XSplitscreen.Components
 
 		private static bool subscribed;
 
-		private static int localPlayerCount;
-
 		internal const int MAX_USERS = 8;
 
-		private GameObject localUserPrefab;
+		public SplitscreenMenuController Controller => _controller;
+		internal LocalUserSlot[] UserSlots => userContainer.GetComponentsInChildren<LocalUserSlot>();
 
-		internal int id { get; private set; }
+		internal int FilledSlots => userContainer.childCount;
+
+		private GameObject userPrefab;
+		private Transform userContainer;
+
+		internal int MonitorId { get; private set; }
+
+		private SplitscreenMenuController _controller;
 
 		//-----------------------------------------------------------------------------------------------------------
 
@@ -38,132 +44,92 @@ namespace dodad.XSplitscreen.Components
 		/// </summary>
 		public void Update()
 		{
-			if (!AllowChanges)
-				return;
-
-			if (id != 0)
+			if (!AllowChanges || MonitorId != 0)
 				return;
 
 			var playerList = ReInput.players.Players;
-			
-			for (int e = 0; e < localPlayerCount; e++)
+
+			for (int e = 0; e < playerList.Count; e++)
 			{
 				var currentPlayer = playerList[e];
-
 				var slot = FindSlotByPlayer(currentPlayer);
 
-				// Pull any controller not yet assigned into a new slot when pressing start
+				var controller = currentPlayer.controllers.GetLastActiveController();
+
+				if (LocalUserSlot.GetDeviceKeyFromController(controller) == "keyboard")
+					continue;
 
 				if (currentPlayer.name == "PlayerMain")
 				{
-					if (slot == null &&
-						currentPlayer.GetButtonDown(11) &&
-						LocalUserSlot.Instances.Count < RoR2Application.maxLocalPlayers
-						)
-					{
-						foreach (var panel in Instances)
-						{
-							int panelChildCount = panel.transform.childCount;
+					if (slot != null)
+						continue;
 
-							if (panelChildCount <= MAX_USERS)
-							{
-								var freeSlot = panel.GetFreeSlot();
-								var freePlayer = panel.GetFreePlayer();
-
-								if (freeSlot == null || freePlayer == null)
-									continue;
-
-								Log.Print(" ------------ Button Press (start) (LocalUserPanel) ------------");
-								Log.Print($"LocalUserPanel.Update: '{panel.name}' adding new player '{freePlayer.name}', slot '{freeSlot.name}' (existing slot is null)");
-
-								freePlayer.controllers.AddController(currentPlayer.controllers.GetLastActiveController(), true);
-
-								freeSlot.LocalPlayer = freePlayer;
-
-								if(panelChildCount != MAX_USERS)
-									panel.AddSlot();
-
-								// Set current selected object to null on add player
-
-								EventSystem.current.SetSelectedGameObject(null);
-
-								break;
-							}
-						}
-					}
+					if (currentPlayer.GetButtonDown(11))
+						TryAddPlayerToSlot(currentPlayer);
 				}
-				else
+				/*else
 				{
-					// Remove a player that held cancel
-
-					if (slot != null && 
-						currentPlayer.GetButton(15))
+					if (currentPlayer.GetButton(15))
 					{
 						currentPlayer.SetVibration(0, currentPlayer.GetVibration(0) + (Time.deltaTime * 10f), true);
-
-						if (currentPlayer.GetButtonTimedPressDown(15, 0.5f))
-						{
-							Log.Print(" ------------ Button Press (b) (LocalUserPanel) ------------");
-							Log.Print($"LocalUserPanel.Update: Removing '{slot.LocalPlayer.name}'");
-
-							var controllers = slot.LocalPlayer.controllers.Controllers;
-
-							var main = LocalUserManager.GetRewiredMainPlayer();
-
-							foreach (var controller in controllers)
-								main.controllers.AddController(controller, true);
-
-							slot.LocalPlayer = null;
-
-							currentPlayer.SetVibration(0, 0, true);
-						}
+						if(currentPlayer.GetButtonTimedPressDown(15, 0.5f))
+							TryRemovePlayerFromSlot(currentPlayer, slot);
 					}
-					
-					/*// Switch displays
-
-					if(slot != null &&
-						slot.LocalPlayer != null)
-					{
-						int displayDirection = 0;
-
-						if (slot.input.LB)
-							displayDirection = -1;
-						else if (slot.input.RB)
-							displayDirection = 1;
-
-						if (displayDirection != 0)
-						{
-							bool foundDisplay = false;
-							var panel = GetComponentInParent<LocalUserPanel>();
-
-							int panelIndex = LocalUserPanel.Instances.IndexOf(panel);
-
-							if (panelIndex == -1)
-								return;
-
-							while (!foundDisplay)
-							{
-								panelIndex += displayDirection;
-
-								var panelCount = LocalUserPanel.Instances.Count;
-
-								if (panelIndex < 0)
-									panelIndex = panelCount - 1;
-								else if (panelIndex == panelCount)
-									panelIndex = 0;
-
-								foundDisplay = LocalUserPanel.Instances[panelIndex].TryAddSlot(this);
-
-								if (foundDisplay)
-								{
-									if (panel.transform.childCount != LocalUserPanel.MAX_USERS)
-										panel.AddSlot();
-								}
-							}
-						}
-					}*/
-				}
+				}*/
 			}
+		}
+
+		internal void TryAddPlayerToSlot(Player currentPlayer)
+		{
+			TryAddControllersToSlot(new Controller[1] { currentPlayer.controllers.GetLastActiveController() });
+		}
+
+		internal void TryAddControllersToSlot(Controller[] controllers)
+		{
+			if (LocalUserSlot.Instances.Count >= RoR2Application.maxLocalPlayers)
+				return;
+
+			foreach (var panel in Instances)
+			{
+				if (panel.FilledSlots >= MAX_USERS)
+					continue;
+
+				var freeSlot = panel.GetFreeSlot();
+				var freePlayer = panel.GetFreePlayer();
+
+				if (freeSlot == null || freePlayer == null)
+					continue;
+
+				Log.Print($"LocalUserPanel.TryAddControllersToSlot: '{panel.name}' adding new player '{freePlayer.name}', slot '{freeSlot.name}' (existing slot is null)");
+
+				foreach(var controller in controllers)
+					freePlayer.controllers.AddController(controller, !(controller is Keyboard || controller is Mouse));
+
+				freeSlot.LocalPlayer = freePlayer;
+
+				if (panel.FilledSlots != MAX_USERS)
+					panel.AddSlot();
+
+				EventSystem.current.SetSelectedGameObject(null);
+				break;
+			}
+		}
+
+		internal void TryRemovePlayerFromSlot(Player currentPlayer, LocalUserSlot slot)
+		{
+			if (slot == null)
+				return;
+
+			Log.Print($"LocalUserPanel.TryRemovePlayerFromSlot: Removing '{slot.LocalPlayer.name}'");
+
+			var controllers = slot.LocalPlayer.controllers.Controllers;
+			var main = LocalUserManager.GetRewiredMainPlayer();
+
+			foreach (var controller in controllers)
+				main.controllers.AddController(controller, true);
+
+			slot.LocalPlayer = null;
+			currentPlayer.SetVibration(0, 0, true);
 		}
 		//-----------------------------------------------------------------------------------------------------------
 
@@ -175,7 +141,7 @@ namespace dodad.XSplitscreen.Components
 		//-----------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Attempt to transfer a slot to another display
+		/// Attempt to transfer a slot to this panel
 		/// </summary>
 		/// <param name="slot"></param>
 		/// <returns></returns>
@@ -186,19 +152,20 @@ namespace dodad.XSplitscreen.Components
 			if (freeSlot == null)
 				return false;
 
-			slot.transform.SetParent(transform);
+			slot.transform.SetParent(userContainer);
+			slot.transform.localScale = Vector3.one;
 
 			if (transform.childCount == MAX_USERS)
 				Destroy(freeSlot.gameObject);
 			else
-				freeSlot.transform.SetSiblingIndex(slot.transform.GetSiblingIndex());
+				freeSlot.transform.SetAsLastSibling();
 
 			return true;
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
 
-		internal void Initialize(int id)
+		internal void Initialize(SplitscreenMenuController controller, int id)
 		{
 			try
 			{
@@ -206,11 +173,12 @@ namespace dodad.XSplitscreen.Components
 
 				// Vars
 
-				this.id = id;
-				localPlayerCount = ReInput.players.playerCount;
+				this.MonitorId = id;
 				
 				Instances ??= new();
 				Instances.Add(this);
+
+				_controller = controller;
 
 				// Juice
 
@@ -229,7 +197,9 @@ namespace dodad.XSplitscreen.Components
 					juice.TransitionPanFromLeft();
 				});
 
-				localUserPrefab ??= Plugin.Resources.LoadAsset<GameObject>("Local User.prefab");
+				userContainer = transform.Find("Slots");
+
+				userPrefab ??= Plugin.Resources.LoadAsset<GameObject>("UserSlot.prefab");
 
 				if (LocalUserSlot.Instances == null || LocalUserSlot.Instances.Count < RoR2Application.maxLocalPlayers)
 					AddSlot();
@@ -251,21 +221,15 @@ namespace dodad.XSplitscreen.Components
 		/// Add a new slot tracker
 		/// </summary>
 		/// <returns></returns>
-		internal LocalUserSlot AddSlot()
+		internal void AddSlot()
 		{
 			//Log.Print($"[{this.GetType().Name}.{MethodBase.GetCurrentMethod().Name}]");
 
-			var newSlot = GameObject.Instantiate(localUserPrefab);
+			var newSlot = GameObject.Instantiate(userPrefab, userContainer);
 
-			newSlot.transform.SetParent(transform);
-
-			var slot = newSlot.gameObject.AddComponent<LocalUserSlot>();
-
-			slot.Initialize();
+			newSlot.gameObject.AddComponent<LocalUserSlot>();
 
 			newSlot.gameObject.SetActive(true);
-
-			return slot;
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -274,7 +238,7 @@ namespace dodad.XSplitscreen.Components
 		{
 			foreach (var instance in LocalUserSlot.Instances)
 			{
-				if (instance.transform.parent != transform)
+				if (instance.transform.parent != userContainer)
 					continue;
 
 				if (instance.LocalPlayer == null)
@@ -294,9 +258,9 @@ namespace dodad.XSplitscreen.Components
 			var players = ReInput.players.Players;
 			int playerCount = players.Count;
 
-			for(int e = 2; e < playerCount; e++)
+			for(int e = 1; e < playerCount; e++)
 			{
-				if (players[e].controllers.joystickCount == 0)
+				if (players[e].controllers.joystickCount == 0 && !players[e].controllers.hasKeyboard)
 					return players[e];
 			}
 
@@ -314,7 +278,7 @@ namespace dodad.XSplitscreen.Components
 		{
 			foreach (var instance in LocalUserSlot.Instances)
 			{
-				if (instance.LocalPlayer == null || instance.LocalPlayer.controllers.joystickCount == 0)
+				if (instance.LocalPlayer == null || (instance.LocalPlayer.controllers.joystickCount == 0 && !instance.LocalPlayer.controllers.hasKeyboard))
 					continue;
 
 				if (instance.LocalPlayer.name == player.name)

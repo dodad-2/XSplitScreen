@@ -10,10 +10,11 @@ using RoR2.UI.MainMenu;
 using RoR2.UI;
 using Newtonsoft.Json;
 using R2API;
-using dodad.XSplitscreen.Components;
+using Dodad.XSplitscreen.Components;
 using System.Runtime.CompilerServices;
+using System.IO;
 
-namespace dodad.XSplitscreen
+namespace Dodad.XSplitscreen
 {
     [BepInPlugin(PluginGUID, PluginName, "4.0.0")]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
@@ -25,22 +26,12 @@ namespace dodad.XSplitscreen
 		public const string PluginAuthor = "com.dodad";
 		public const string PluginName = "XSplitscreen";
 
-		// public const string PluginVersion = "3.1.4";
-		//public const string PluginTag = "XSS";
-		//public const string PluginBundle = "xsplitscreenbundle";
-		//public const bool developerMode = false;
-		//public const bool clearAssignmentsOnStart = false;
-		//public const bool logModeOverrideToAll = false;
-		//public static bool active => UserManager.localUsers.Count > 0;
-		//public static string bundleKey { get; private set; }
-		//private static GameObject assignmentScreen;
-		//private static GameObject titleButton;
-		//private static Coroutine initializationCoroutine;
-
 		//-----------------------------------------------------------------------------------------------------------
 
 		public static Plugin Singleton { get; private set; }
         public static AssetBundle Resources { get; private set; }
+        public static Action OnOpenMenu;
+
         private static HGButton MainMenuTitleButton;
 		#endregion
 
@@ -105,97 +96,184 @@ namespace dodad.XSplitscreen
 		//-----------------------------------------------------------------------------------------------------------
 
 		#region Initialization
-        /// <summary>
-        /// Load language file from disk
-        /// </summary>
-        private static bool LoadLanguage()
+		/// <summary>
+		/// Load language file from disk and merge with defaults
+		/// </summary>
+		private static bool LoadLanguage()
 		{
-            // TODO
-            // If a file is found, load it and merge the tokens to account for user customizations
+			string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "language.json");
 
-			string filePath = $"{System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)}\\language.json";
+			try
+			{
+				// Create default language tokens
+				MultiDictionary defaultTokens = CreateDefaultLanguageTokens();
+				MultiDictionary userTokens = null;
 
-            try
-            {
-                MultiDictionary tokens = new MultiDictionary();
+				// Check if custom language file exists
+				if (File.Exists(filePath))
+				{
+					try
+					{
+						string fileContent = File.ReadAllText(filePath);
+						userTokens = JsonConvert.DeserializeObject<MultiDictionary>(fileContent);
 
-                // Write a language file if missing, otherwise load it
-
-                if(!System.IO.File.Exists(filePath))
-                {
-                    // English
-
-                    string enKey = "en";
-
-                    tokens.Add(enKey, new StringDictionary());
-
-                    tokens[enKey].Add("XSS_NAME_HOVER", "Modify splitscreen settings.");
-                    tokens[enKey].Add("XSS_OPTION_DISCORD_HOVER", "Join for support, feedback or updates");
-                    tokens[enKey].Add("XSS_PRESS_START", "- press start -");
-                    tokens[enKey].Add("XSS_CONFIG_PROFILE", "Profile");
-                    tokens[enKey].Add("XSS_CONFIG_COLOR", "Color");
-                    tokens[enKey].Add("XSS_OPTION_MMM", "Multi-Monitor Mode");
-                    tokens[enKey].Add("XSS_OPTION_MMM_HOVER", "Enable Multi-Monitor Mode (cannot be disabled)");
-
-                    // pt-br
-
-                    string ptBrKey = "pt-br";
-
-					tokens.Add(ptBrKey, new StringDictionary());
-
-					tokens[ptBrKey].Add("XSS_NAME_HOVER", "Modificar as configurações da tela-dividida.");
-					tokens[ptBrKey].Add("XSS_OPTION_DISCORD_HOVER", "Entre para suporte, dar feedback ou ver atualizações");
-					tokens[ptBrKey].Add("XSS_OPTION_MMM", "Multi-Monitor Mode");
-					tokens[ptBrKey].Add("XSS_OPTION_MMM_HOVER", "Enable Multi-Monitor Mode (cannot be disabled)");
-
-					// fr
-
-					string frKey = "fr";
-
-					tokens.Add(frKey, new StringDictionary());
-
-					tokens[frKey].Add("XSS_NAME_HOVER", "Modifier les paramètres de splitscreen.");
-					tokens[frKey].Add("XSS_OPTION_DISCORD_HOVER", "Rejoignez nous pour du support, du feedback ou des mises à jour");
-					tokens[frKey].Add("XSS_OPTION_MMM", "Multi-Monitor Mode");
-					tokens[frKey].Add("XSS_OPTION_MMM_HOVER", "Enable Multi-Monitor Mode (cannot be disabled)");
-
-					// Shared
-
-					foreach (var language in tokens)
-                    {
-                        language.Value.Add("XSS_NAME", "XSplitscreen");
-                        language.Value.Add("XSS_OPTION_DISCORD", "Discord");
-						language.Value.Add("XSS_UNSET", "- not set -");
-						//language.Value.Add("XSS_PRESS_START", "- press start -");
+						// Validate the loaded data
+						if (userTokens == null)
+						{
+							Log.Print("Language file exists but contains invalid data. Using defaults.", Log.ELogChannel.Warning);
+							userTokens = null;
+						}
 					}
-
-                    System.IO.File.WriteAllText(filePath, JsonConvert.SerializeObject(tokens, Formatting.Indented));
+					catch (JsonException jsonEx)
+					{
+						Log.Print($"Error parsing language file: {jsonEx.Message}. Using defaults.", Log.ELogChannel.Warning);
+					}
+					catch (IOException ioEx)
+					{
+						Log.Print($"Error reading language file: {ioEx.Message}. Using defaults.", Log.ELogChannel.Warning);
+					}
 				}
-                else
-                {
-                    var file = System.IO.File.ReadAllText(filePath);
 
-                    var jObject = JsonConvert.DeserializeObject(file, typeof(MultiDictionary));
+				// Merge user tokens with defaults or use defaults if no valid user file
+				MultiDictionary finalTokens = userTokens != null ?
+					MergeLanguageTokens(defaultTokens, userTokens) :
+					defaultTokens;
 
-					tokens = (MultiDictionary)jObject;
-                }
+				// Save the complete language file for user reference/editing
+				File.WriteAllText(filePath, JsonConvert.SerializeObject(finalTokens, Formatting.Indented));
 
-				// Add tokens through LanguageAPI
+				// Add tokens to LanguageAPI
+				foreach (var language in finalTokens)
+				{
+					foreach (var token in language.Value)
+					{
+						LanguageAPI.Add(token.Key, token.Value, language.Key);
+					}
+				}
 
-                foreach(var language in tokens)
-                {
-                    foreach(var token in language.Value)
-                        LanguageAPI.Add(token.Key, token.Value, language.Key);
-                }
-
-                return true;
+				return true;
 			}
-            catch (Exception e)
-            {
-                Log.Print(e, Log.ELogChannel.Fatal);
+			catch (Exception e)
+			{
+				Log.Print($"Fatal error in LoadLanguage: {e.Message}", Log.ELogChannel.Fatal);
+				Log.Print(e, Log.ELogChannel.Fatal);
+				return false;
+			}
+		}
 
-                return false;
-            }
+		/// <summary>
+		/// Creates the default language tokens for all supported languages
+		/// </summary>
+		private static MultiDictionary CreateDefaultLanguageTokens()
+		{
+			MultiDictionary tokens = new MultiDictionary();
+
+			// Define shared tokens that will be applied to all languages
+			StringDictionary sharedTokens = new StringDictionary
+			{
+				{ "XSS_NAME", "XSplitscreen" },
+				{ "XSS_OPTION_DISCORD", "Discord" },
+				{ "XSS_UNSET", "- not set -" },
+				{ "XSS_SELECT_SCREEN", "Select Screen" },
+				{ "XSS_READY", "READY" },
+				{ "XSS_ONLINE", "Online" }
+			};
+
+			// English (complete set - reference for other languages)
+			string enKey = "en";
+			tokens.Add(enKey, new StringDictionary
+			{
+				{ "XSS_NAME_HOVER", "Modify splitscreen settings." },
+				{ "XSS_OPTION_DISCORD_HOVER", "Join for support, feedback or updates" },
+				{ "XSS_PRESS_START_KBM", "- click or press start -" },
+				{ "XSS_PRESS_START", "- press start -" },
+				{ "XSS_CONFIG_PROFILE", "Profile" },
+				{ "XSS_CONFIG_COLOR", "Color" },
+				{ "XSS_OPTION_MMM", "Multi-Monitor Mode" },
+				{ "XSS_OPTION_MMM_HOVER", "Enable Multi-Monitor Mode (cannot be disabled)" }
+			});
+
+			// Portuguese (Brazilian)
+			string ptBrKey = "pt-br";
+			tokens.Add(ptBrKey, new StringDictionary
+			{
+				{ "XSS_NAME_HOVER", "Modificar as configurações da tela-dividida." },
+				{ "XSS_OPTION_DISCORD_HOVER", "Entre para suporte, dar feedback ou ver atualizações" },
+				{ "XSS_PRESS_START_KBM", "- clique ou pressione start -" },
+				{ "XSS_PRESS_START", "- pressione start -" },
+				{ "XSS_CONFIG_PROFILE", "Perfil" },
+				{ "XSS_CONFIG_COLOR", "Cor" },
+				{ "XSS_OPTION_MMM", "Modo Multi-Monitor" },
+				{ "XSS_OPTION_MMM_HOVER", "Ativar o Modo Multi-Monitor (não pode ser desativado)" }
+			});
+
+			// French
+			string frKey = "fr";
+			tokens.Add(frKey, new StringDictionary
+			{
+				{ "XSS_NAME_HOVER", "Modifier les paramètres de splitscreen." },
+				{ "XSS_OPTION_DISCORD_HOVER", "Rejoignez nous pour du support, du feedback ou des mises à jour" },
+				{ "XSS_PRESS_START_KBM", "- cliquez ou appuyez sur start -" },
+				{ "XSS_PRESS_START", "- appuyez sur start -" },
+				{ "XSS_CONFIG_PROFILE", "Profil" },
+				{ "XSS_CONFIG_COLOR", "Couleur" },
+				{ "XSS_OPTION_MMM", "Mode Multi-Écrans" },
+				{ "XSS_OPTION_MMM_HOVER", "Activer le Mode Multi-Écrans (ne peut pas être désactivé)" }
+			});
+
+			// Apply shared tokens to all languages
+			foreach (var language in tokens)
+			{
+				foreach (var token in sharedTokens)
+				{
+					language.Value[token.Key] = token.Value;
+				}
+			}
+
+			return tokens;
+		}
+
+		/// <summary>
+		/// Merges user language tokens with default tokens, preserving user customizations
+		/// </summary>
+		private static MultiDictionary MergeLanguageTokens(MultiDictionary defaultTokens, MultiDictionary userTokens)
+		{
+			MultiDictionary result = new MultiDictionary();
+
+			// First add all default languages and tokens
+			foreach (var language in defaultTokens)
+			{
+				result.Add(language.Key, new StringDictionary());
+				foreach (var token in language.Value)
+				{
+					result[language.Key].Add(token.Key, token.Value);
+				}
+			}
+
+			// Then overlay user customizations
+			foreach (var language in userTokens)
+			{
+				// Create language if it doesn't exist in defaults
+				if (!result.ContainsKey(language.Key))
+				{
+					result.Add(language.Key, new StringDictionary());
+				}
+
+				// Add or replace tokens with user values
+				foreach (var token in language.Value)
+				{
+					if (result[language.Key].ContainsKey(token.Key))
+					{
+						result[language.Key][token.Key] = token.Value;
+					}
+					else
+					{
+						result[language.Key].Add(token.Key, token.Value);
+					}
+				}
+			}
+
+			return result;
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -317,15 +395,19 @@ namespace dodad.XSplitscreen
             var mmcInteractablePatch = typeof(Plugin).GetMethod("SetButtonInteractable", BindingFlags.Static | BindingFlags.NonPublic);
 
             harmony.Patch(mmcInteractableOriginal, prefix: new HarmonyLib.HarmonyMethod(mmcInteractablePatch));
+
+			// Testing
+
+			var mpbAOriginal = typeof(RoR2.UI.MPButton).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
+			var mpbAPatch = typeof(Plugin).GetMethod("MPButton_Awake", BindingFlags.Static | BindingFlags.NonPublic);
+
+			harmony.Patch(mpbAOriginal, postfix: new HarmonyLib.HarmonyMethod(mpbAPatch));
 		}
-		#endregion
 
 		//-----------------------------------------------------------------------------------------------------------
-
-		#region Initialization
-        /// <summary>
-        /// Load and format the main menu UI
-        /// </summary>
+		/// <summary>
+		/// Load and format the main menu UI
+		/// </summary>
 		private static void CreateTitleUI()
         {
             if (MainMenuTitleButton != null)
@@ -366,6 +448,7 @@ namespace dodad.XSplitscreen
 			titleButton.onClick.AddListener(() =>
 			{
 				MainMenuController.instance.SetDesiredMenuScreen(SplitscreenMenuController.Singleton);
+                OnOpenMenu?.Invoke();
 			});
 		}
 
@@ -393,7 +476,7 @@ namespace dodad.XSplitscreen
                 canvas.targetDisplay = id;
 
 				var controller = menuController.gameObject.AddComponent<SplitscreenMenuController>();
-                controller.id = id;
+                controller.monitorId = id;
 
                 if(id != 0)
                 {
@@ -416,65 +499,7 @@ namespace dodad.XSplitscreen
                 return null;
 			}
 		}
-		/*private static void Initialize()
-        {
-            HookManager.InitializeCustomHookList();
-            HookManager.UpdateHooks(HookType.General, true);
-        }
-        private static bool InitializeTitleButton()
-        {
-            if (titleButton != null)
-                Destroy(titleButton);
-
-            var singlePlayerButton = GameObject.Find("GenericMenuButton (Singleplayer)");
-
-            if (singlePlayerButton == null || MainMenuController.instance == null)
-                return false;
-
-            // Create main menu button
-
-            titleButton = Instantiate(XLibrary.Resources.GetPrefabUI("MainMenuButton"));
-
-            titleButton.name = "GenericMenuButton (XSplitScreen)";
-            titleButton.transform.SetParent(singlePlayerButton.transform.parent);
-            titleButton.transform.SetSiblingIndex(singlePlayerButton.transform.GetSiblingIndex() - 1);
-            titleButton.transform.localScale = Vector3.one;
-
-            return true;
-        }
-        private static bool InitializeUI()
-        {
-            if (titleButton == null)
-                return false;
-
-            // Create assignment screen
-
-            assignmentScreen = Instantiate(XLibrary.Resources.GetPrefabUI("Screen"));
-            assignmentScreen.name = "MENU: XSplitScreen";
-            assignmentScreen.transform.SetParent(MainMenuController.instance.transform);
-            assignmentScreen.transform.localScale = Vector3.one;
-            assignmentScreen.SetActive(true);
-
-            GameObject screen = assignmentScreen.transform.GetChild(0).gameObject;
-            screen.SetActive(false);
-            screen.AddComponent<AssignmentScreen>();
-            screen.GetComponent<AssignmentScreen>().Initialize();
-
-            HGButton hgButton = titleButton.GetComponent<HGButton>();
-            hgButton.hoverToken = "XSS_NAME_HOVER";
-            hgButton.onClick.RemoveAllListeners();
-            hgButton.onClick.AddListener(screen.GetComponent<AssignmentScreen>().OpenScreen);
-
-            LanguageTextMeshController langController = titleButton.GetComponent<LanguageTextMeshController>();
-
-            R2API.LanguageAPI.Add("XSS_NAME", PluginName);
-            langController.token = "XSS_NAME";
-
-            titleButton.SetActive(true);
-
-            //RoR2.RoR2Application.instance.gameObject.AddComponent<MultiMonitorCameraManager>();
-            return true;
-        }*/
+		
 		#endregion
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -498,7 +523,10 @@ namespace dodad.XSplitscreen
             if (MainMenuTitleButton != null)
                 return;
 
-            UIHelper.Initialize();
+			if (SplitscreenUserManager.IsSplitscreenEnabled())
+				SplitscreenUserManager.DisableSplitscreen();
+
+			UIHelper.Initialize();
 
             CreateTitleUI();
 		}
@@ -534,39 +562,12 @@ namespace dodad.XSplitscreen
 
 		//-----------------------------------------------------------------------------------------------------------
 
-		#region Language
-		/*public void InitializeLanguage(TokenConfiguration configuration) { }
-        public virtual Dictionary<string, string> GetLanguage()
-        {
-            Dictionary<string, string> dictionary = new Dictionary<string, string>();
-
-            dictionary.Add("XSS_NAME_HOVER", "Modify splitscreen settings.");
-            dictionary.Add("XSS_OPTION_DISCORD", "Discord");
-            dictionary.Add("XSS_OPTION_DISCORD_HOVER", "Join for support, feedback or updates");
-            dictionary.Add("XSS_OPTION_RESET_ASSIGNMENTS_HOVER", "Unassign all local players");
-            dictionary.Add("XSS_ERROR_MINIMUM", "Minimum of 2 players not met");
-            dictionary.Add("XSS_ERROR_PROFILE", "Cannot use the same profile for more than 1 local user");
-            dictionary.Add("XSS_ERROR_PROFILE_2", "Not enough profiles exist to add a local user");
-            dictionary.Add("XSS_ERROR_CONTROLLER", "Drag a controller here to assign it to a profile");
-            dictionary.Add("XSS_ERROR_POSITION", "Position error: Please reset all assignments using the Reset button");
-            dictionary.Add("XSS_ERROR_DISPLAY", "Display error: Please reset all assignments using the Reset button");
-            dictionary.Add("XSS_ERROR_OTHER", "Unknown error: Please reset all assignments using the Reset button");
-            dictionary.Add("XSS_ERROR_SPLITSCREEN_ENABLED", "Disable splitscreen to change assignments");
-            dictionary.Add("XSS_ERROR_FIRSTTIME", "Assign profiles and controllers for each monitor here");
-            dictionary.Add("XSS_USEROPTION_HUDSCALE", "HUD Scale: {0}%"); // TODO create missing entries
-            dictionary.Add("XSS_ENABLE", "Enable");
-            dictionary.Add("XSS_DISABLE", "Disable");
-            //dictionary.Add("XSS_LEMON_DAMAGE", "+25% damage!");
-            //dictionary.Add("XSS_LEMON_SPEED", "+25% speed!");
-            //dictionary.Add("XSS_LEMON_HEALTH", "+25% health!");
-            //dictionary.Add("XSS_LEMON_SHIELD", "+25% shield!");
-            return dictionary;
-        }*/
-		#endregion
-
-		//-----------------------------------------------------------------------------------------------------------
-
 		#region Patching
+		private static void MPButton_Awake(RoR2.UI.MPButton __instance)
+		{
+
+		}
+
 		/// <summary>
 		/// Update the interactable state of the splitscreen button in the title menu
 		/// </summary>

@@ -2,7 +2,7 @@
 using System;
 using UnityEngine;
 
-namespace dodad.XSplitscreen
+namespace Dodad.XSplitscreen
 {
 	internal static class Log
 	{

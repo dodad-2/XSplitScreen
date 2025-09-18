@@ -8,7 +8,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace dodad.XSplitscreen
+namespace Dodad.XSplitscreen
 {
 	/// <summary>
 	/// Formats and stores useful UI prefabs. This code was copied over from the 
@@ -51,6 +51,28 @@ namespace dodad.XSplitscreen
 			ClearHGButton(button);
 
 			AddPrefab(EUIPrefabIndex.MainMenuButton, mainMenuButtonPrefab);
+
+			// Toggle
+
+			var togglePrefab = MainMenuController.instance.multiplayerMenuScreen.GetComponentInChildren<MPToggle>(true).gameObject;
+
+			var toggle = GameObject.Instantiate(togglePrefab).GetComponent<MPToggle>();
+			toggle.name = "Toggle";
+			toggle.mpControlHelper.allowAllEventSystems = true;
+
+			var toggleRect = toggle.GetComponent<RectTransform>();
+
+			toggleRect.pivot = Vector2.one / 2f;
+
+			toggleRect.GetComponent<RectTransform>().anchorMax = Vector2.one;
+			toggleRect.GetComponent<RectTransform>().anchorMin = Vector2.zero;
+
+			foreach (Transform child in toggle.GetComponentsInChildren<Transform>(true))
+				child.transform.localPosition = Vector3.zero;
+
+			GameObject.Destroy(toggle.GetComponent<LayoutElement>());
+
+			AddPrefab(EUIPrefabIndex.Toggle, toggle.gameObject);
 
 			/*// Menu screen
 
@@ -153,28 +175,6 @@ namespace dodad.XSplitscreen
 
 			AddPrefab(EUIPrefabIndex.Slider, sliderPrefab);
 
-			// Toggle
-
-			var togglePrefab = MainMenuController.instance.multiplayerMenuScreen.GetComponentInChildren<MPToggle>(true).gameObject;
-
-			var toggle = GameObject.Instantiate(togglePrefab).GetComponent<MPToggle>();
-			toggle.name = "Toggle";
-			toggle.mpControlHelper.allowAllEventSystems = true;
-
-			var toggleRect = toggle.GetComponent<RectTransform>();
-
-			toggleRect.pivot = Vector2.one / 2f;
-
-			toggleRect.GetComponent<RectTransform>().anchorMax = Vector2.one;
-			toggleRect.GetComponent<RectTransform>().anchorMin = Vector2.zero;
-
-			foreach (Transform child in toggle.GetComponentsInChildren<Transform>(true))
-				child.transform.localPosition = Vector3.zero;
-
-			GameObject.Destroy(toggle.GetComponent<LayoutElement>());
-
-			AddPrefab(EUIPrefabIndex.Toggle, toggle.gameObject);
-
 			// Description
 
 			var descriptionPrefab = MainMenuController.instance.settingsMenuScreen.GetComponentInChildren<SubmenuMainMenuScreen>(true).submenuPanelPrefab.transform.GetChild(3).GetChild(2).GetChild(0).gameObject;
@@ -259,16 +259,8 @@ namespace dodad.XSplitscreen
 		internal enum EUIPrefabIndex
 		{
 			MainMenuButton,
-			Screen,
-			ScreenOption,
-			SimpleImage,
 			SimpleText,
-			RightArrow,
-			SimpleButton,
-			Dropdown,
-			Slider,
 			Toggle,
-			Description
 		}
 	}
 }

@@ -2,20 +2,21 @@
 using RoR2;
 using RoR2.UI;
 using RoR2.UI.MainMenu;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace dodad.XSplitscreen.Components
+namespace Dodad.XSplitscreen.Components
 {
 	public class SplitscreenMenuController : BaseMainMenuScreen
 	{
 		public static SplitscreenMenuController Singleton { get; private set; }
 
-		internal static GameObject textPrefab { get; private set; }
-		internal static UILayerKey uiLayerKey { get; private set; }
+		internal static GameObject TextPrefab { get; private set; }
+		internal static UILayerKey UiLayerKey { get; private set; }
 
 		/// <summary>
 		/// This field is null checked during menu enter and if true will go back to the main menu
@@ -29,14 +30,18 @@ namespace dodad.XSplitscreen.Components
 		/// <summary>
 		/// Monitor device id
 		/// </summary>
-		internal int id;
+		internal int monitorId;
 
-		private bool initialized;
+		public Canvas MenuCanvas => _canvas;
+		public Camera MenuCamera => _camera;
+		private bool hasInitialized;
 
 		/// <summary>
 		/// Wait 2 frames to invoke Juiced event
 		/// </summary>
 		private int framesSinceMultiMonitorEnabled = 3;
+		private Canvas _canvas;
+		private Camera _camera;
 
 		//-----------------------------------------------------------------------------------------------------------
 
@@ -54,6 +59,8 @@ namespace dodad.XSplitscreen.Components
 
 			onEnter = new UnityEngine.Events.UnityEvent();
 			onExit = new UnityEngine.Events.UnityEvent();
+
+			_canvas = GetComponent<Canvas>();
 
 			// FirstSelectedObjectProvider is defined in 2 assemblies
 			// Use Reflection to set the field value
@@ -86,10 +93,11 @@ namespace dodad.XSplitscreen.Components
 			uiLayerKey.onEndRepresentTopLayer = new UnityEngine.Events.UnityEvent();
 			uiLayerKey.Awake();*/
 
-			if (id == 0)
+			if (monitorId == 0)
 			{
 				mainPlayer = LocalUserManager.GetRewiredMainPlayer();
 				mainInput = new LocalUserSlot.InputBank();
+				_camera = Camera.main;
 			}
 
 			gameObject.SetActive(false);
@@ -99,22 +107,20 @@ namespace dodad.XSplitscreen.Components
 
 		public void LateUpdate()
 		{
-			if (id != 0)
+			if (monitorId != 0)
 				return;
 
 			framesSinceMultiMonitorEnabled++;
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
-
 		public new void Update()
 		{
 			base.Update();
 
-			if (id != 0)
+			// Only process UI navigation for monitor 0
+			if (monitorId != 0)
 				return;
-			
-			mainInput.Update(mainPlayer);
 
 			/*if (mainPlayer.GetButton(7))
 				Log.Print("Button 7"); 
@@ -131,58 +137,80 @@ namespace dodad.XSplitscreen.Components
 			if (mainPlayer.GetButton(28))
 				Log.Print("Button 28");*/
 
-			// To handle main user UI interaction, manually set the selected object depending on 
-			// the direction of the left stick (up / down) and whether or not a selection exists
 
 			// TODO create an invisible button 
+			mainInput.Update(mainPlayer);
 
-			if (mainInput.Down)
-			{
-				//Log.Print($"[{this.GetType().Name}.{MethodBase.GetCurrentMethod().Name}] : Down");
+			HandleNavigationInput();
+			HandleMenuExit();
+			HandleLoadGame();
 
-				if (EventSystem.current.currentSelectedGameObject == null)
-				{
-					//Log.Print($"[{this.GetType().Name}.{MethodBase.GetCurrentMethod().Name}] : Selecting Discord button");
-
-					if(multiMonitorButton.interactable)
-						EventSystem.current.SetSelectedGameObject(multiMonitorButton.gameObject);
-					else
-						EventSystem.current.SetSelectedGameObject(discordButton.gameObject);
-				}
-			}
-			else if(mainInput.Up) // TODO description text does not disappear on deselect with controller
-			{
-				//Log.Print($"[{this.GetType().Name}.{MethodBase.GetCurrentMethod().Name}] : Up");
-
-				if(EventSystem.current.currentSelectedGameObject == multiMonitorButton.gameObject)
-				{
-					EventSystem.current.SetSelectedGameObject(null);
-				}
-				else if(EventSystem.current.currentSelectedGameObject == discordButton.gameObject)
-				{
-					if(multiMonitorButton.interactable)
-						EventSystem.current.SetSelectedGameObject(multiMonitorButton.gameObject);
-					else
-						EventSystem.current.SetSelectedGameObject(null);
-				}
-			}
-			else if(mainInput.East)
-			{
-				MainMenuController.instance.SetDesiredMenuScreen(MainMenuController.instance.titleMenuScreen);
-			}
-
-			if(framesSinceMultiMonitorEnabled == 2)
+			// Trigger onEnter event after enabling multi-monitor (delayed by two frames)
+			if (framesSinceMultiMonitorEnabled == 2)
 				Singleton.onEnter.Invoke();
 		}
 
-		//-----------------------------------------------------------------------------------------------------------
+		private void HandleNavigationInput()
+		{
+			if (mainPlayer.controllers.GetLastActiveController() is Keyboard)
+				return;
 
+			if (mainInput.Down)
+			{
+				SelectInitialButtonIfNoneSelected();
+			}
+			else if (mainInput.Up)
+			{
+				HandleUpNavigation();
+			}
+		}
+
+		private void HandleMenuExit()
+		{
+			if (mainPlayer.controllers.GetLastActiveController() is Keyboard)
+				return;
+
+			if (mainInput.East)
+			{
+				Log.Print($"LastActiveController = '{mainPlayer.controllers.GetLastActiveController()}'");
+				MainMenuController.instance.SetDesiredMenuScreen(MainMenuController.instance.titleMenuScreen);
+			}
+		}
+
+		private void SelectInitialButtonIfNoneSelected()
+		{
+			if (EventSystem.current.currentSelectedGameObject == null)
+			{
+				if (multiMonitorButton.interactable)
+					EventSystem.current.SetSelectedGameObject(multiMonitorButton.gameObject);
+				else
+					EventSystem.current.SetSelectedGameObject(discordButton.gameObject);
+			}
+		}
+
+		private void HandleUpNavigation()
+		{
+			var selected = EventSystem.current.currentSelectedGameObject;
+			if (selected == multiMonitorButton.gameObject)
+			{
+				EventSystem.current.SetSelectedGameObject(null);
+			}
+			else if (selected == discordButton.gameObject)
+			{
+				if (multiMonitorButton.interactable)
+					EventSystem.current.SetSelectedGameObject(multiMonitorButton.gameObject);
+				else
+					EventSystem.current.SetSelectedGameObject(null);
+			}
+		}
+
+		//-----------------------------------------------------------------------------------------------------------
 		/// <summary>
 		/// Called when the player clicks on the Multi-Monitor button
 		/// </summary>
 		public void EnableMultiMonitorMode()
 		{
-			Log.Print($"[{this.GetType().Name}.{MethodBase.GetCurrentMethod().Name}] : id -> '{id}'");
+			Log.Print($"[{this.GetType().Name}.{MethodBase.GetCurrentMethod().Name}] : id -> '{monitorId}'");
 
 			int displayCount = Display.displays.Length;
 
@@ -199,7 +227,7 @@ namespace dodad.XSplitscreen.Components
 				if (!Display.displays[e].active)
 					Display.displays[e].Activate();
 
-				Plugin.CreateMenuForDisplay(e);
+				var newMenu = Plugin.CreateMenuForDisplay(e);
 
 				// Create camera
 
@@ -210,7 +238,7 @@ namespace dodad.XSplitscreen.Components
 				camera.sceneCam.transform.position = Singleton.desiredCameraTransform.position;
 				camera.sceneCam.transform.rotation = Singleton.desiredCameraTransform.rotation;
 
-				//menu.OnEnter(MainMenuController.instance);
+				newMenu._camera = camera.sceneCam;
 			}
 
 			EventSystem.current.SetSelectedGameObject(null);
@@ -222,10 +250,10 @@ namespace dodad.XSplitscreen.Components
 
 		public override void OnEnter(MainMenuController mainMenuController)
 		{
-			if(!initialized)
+			if(!hasInitialized)
 				CreateUI();
 
-			if (id != 0)
+			if (monitorId != 0)
 			{
 				gameObject.SetActive(true);
 
@@ -253,7 +281,7 @@ namespace dodad.XSplitscreen.Components
 
 		public override void OnExit(MainMenuController mainMenuController)
 		{
-			if (id != 0)
+			if (monitorId != 0)
 			{
 				gameObject.SetActive(false);
 
@@ -278,19 +306,19 @@ namespace dodad.XSplitscreen.Components
 
 			// Local user panel
 
-			var localUserPanel = mainPanel.Find("Local User Panel");
+			var localUserPanel = mainPanel.Find("User Panel");
 
-			localUserPanel.gameObject.AddComponent<LocalUserPanel>().Initialize(id);
-
+			localUserPanel.gameObject.AddComponent<LocalUserPanel>().Initialize(this, monitorId);
+			
 			// Assignment panel
 
 			var assignmentPanel = mainPanel.Find("Assignment Panel");
 
 			assignmentPanel.gameObject.AddComponent<AssignmentPanel>().Initialize();
 
-			initialized = true;
+			hasInitialized = true;
 
-			if (id != 0)
+			if (monitorId != 0)
 				return;
 
 			// Back panel
@@ -439,10 +467,10 @@ namespace dodad.XSplitscreen.Components
 
 			// Text prefab
 
-			textPrefab = new GameObject("SimpleText Prefab", typeof(RectTransform), typeof(HGTextMeshProUGUI));
-			textPrefab.SetActive(false);
+			TextPrefab = new GameObject("SimpleText Prefab", typeof(RectTransform), typeof(HGTextMeshProUGUI));
+			TextPrefab.SetActive(false);
 
-			var textPrefabHg = textPrefab.GetComponent<HGTextMeshProUGUI>();
+			var textPrefabHg = TextPrefab.GetComponent<HGTextMeshProUGUI>();
 
 			var textTemplate = backButton.GetComponentInChildren<HGTextMeshProUGUI>();
 
@@ -457,12 +485,116 @@ namespace dodad.XSplitscreen.Components
 			textPrefabHg.horizontalAlignment = TMPro.HorizontalAlignmentOptions.Center;
 			textPrefabHg.verticalAlignment = TMPro.VerticalAlignmentOptions.Middle;
 
-			var textPrefabLang = textPrefab.AddComponent<LanguageTextMeshController>();
+			var textPrefabLang = TextPrefab.AddComponent<LanguageTextMeshController>();
 
 			textPrefabLang.textMeshPro = textPrefabHg;
 			textPrefabLang.token = "XSS_UNSET";
 
 			UIHelper.AddPrefab(UIHelper.EUIPrefabIndex.SimpleText, textPrefabLang.gameObject);
+
+			AssignmentConfigurator.OnClaimUpdated += OnClaimUpdated;
+		}
+
+		public void OnClaimUpdated(bool state)
+		{
+			if(state)
+			{
+				var users = AssignmentConfigurator.Instances.Where(x => x.HasUser).ToList();
+
+				if (users.Count > 1 && users.TrueForAll(x => x.IsReady))
+				{
+					AllowLoad = state;
+				}
+			}
+			else
+			{
+				AllowLoad = false;
+			}
+
+			LoadTimer = 5f;
+		}
+
+		private static float LoadTimer;
+		private static bool AllowLoad;
+		private static bool didLoad;
+
+		public void HandleLoadGame()
+		{
+			if (AllowLoad)
+			{
+				if (LoadTimer > 0f)
+				{
+					LoadTimer -= Time.unscaledDeltaTime;
+				}
+				else
+				{
+					var users = LocalUserSlot.Instances.Where(x => x.LocalPlayer != null).ToList().OrderBy(x => !x.IsKeyboardUser).ToArray();
+					List<UserAssignmentData> assignments = new();
+
+					// Get controllers of next player to be applied on the next iteration
+					var controllers = users[users.Length - 1].LocalPlayer.controllers.Controllers.ToList();
+
+					// Shift all input players down
+
+					for (int e = users.Length - 1; e > 0; e--)
+					{
+						Log.Print($"User '{users[e].name}' with index '{e}'");
+						Log.Print($"Current LocalPlayer: '{users[e].LocalPlayer.name}', previous '{users[e - 1].LocalPlayer.name}'");
+						var nextControllers = users[e - 1].LocalPlayer.controllers.Controllers.ToList();
+
+						users[e].LocalPlayer = users[e - 1].LocalPlayer;
+						users[e].LocalPlayer.controllers.ClearAllControllers();
+
+						foreach (var controller in controllers)
+							users[e].LocalPlayer.controllers.AddController(controller, false);
+
+						controllers = nextControllers;
+					}
+
+					// Assign PlayerMain
+
+					users[0].LocalPlayer = ReInput.players.GetPlayer("PlayerMain");
+
+					foreach (var controller in controllers)
+						users[0].LocalPlayer.controllers.AddController(controller, false);
+
+					for (int e = 0; e < users.Length; e++)
+					{
+						var userData = new UserAssignmentData()
+						{
+							Profile = users[e].Profile,
+							UserIndex = e,
+							InputPlayer = users[e].LocalPlayer,
+						};
+
+						assignments.Add(userData);
+					}
+
+					SplitscreenUserManager.InitializeUsers(assignments);
+
+					AllowLoad = false;
+
+					SplitscreenUserManager.EnableSplitscreen();
+
+					LoadTimer = 5f;
+
+					didLoad = true;
+					// load new scene
+				}
+			}
+			else if(didLoad)
+			{
+				if(LoadTimer > 0)
+				{
+					LoadTimer -= Time.deltaTime;
+				}
+				else
+				{
+					didLoad = false;
+
+					//SplitscreenUserManager.DisableSplitscreen();
+				}
+			}
 		}
 	}
 }
