@@ -2,6 +2,7 @@
 using RoR2.UI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -16,6 +17,7 @@ namespace Dodad.XSplitscreen.Components
 
 		public static List<AssignmentConfigurator> Instances { get; } = new List<AssignmentConfigurator>();
 
+		internal UnityEngine.Rect Rect => _claim?.ScreenRect ?? new Rect(0, 0, 1, 1);
 		internal bool HasUser => Options.Slot.LocalPlayer != null;
 		internal bool IsReady => _claim != null;
 
@@ -46,6 +48,9 @@ namespace Dodad.XSplitscreen.Components
 		/// </summary>
 		public void MoveCursor(RectTransform target, Vector2 input, float maxSpeed, float acceleration)
 		{
+			if (_claim != null)
+				return;
+
 			// Decelerate if no input
 			if (input.sqrMagnitude < 0.01f)
 			{
@@ -59,7 +64,6 @@ namespace Dodad.XSplitscreen.Components
 
 			Vector2 newPos = target.anchoredPosition + _velocity * Time.unscaledDeltaTime;
 
-			// Clamp to parent rect if needed (optional for UI boundary)
 			if (target.parent is RectTransform parentRect)
 			{
 				Vector2 min = parentRect.rect.min - target.rect.min;
@@ -68,7 +72,6 @@ namespace Dodad.XSplitscreen.Components
 				newPos.y = Mathf.Clamp(newPos.y, min.y, max.y);
 			}
 
-			// Only update if position changed
 			if ((target.anchoredPosition - newPos).sqrMagnitude > 0.01f)
 			{
 				target.anchoredPosition = newPos;
@@ -93,14 +96,12 @@ namespace Dodad.XSplitscreen.Components
 			Vector3 desiredScale = active ? new Vector3(targetScale, targetScale, targetScale) : originalScale;
 			Vector3 newScale = Vector3.MoveTowards(currentScale, desiredScale, speed * Time.unscaledDeltaTime);
 
-			// Rotation (only Z axis for UI)
 			Quaternion currentRot = target.localRotation;
 			Quaternion desiredRot = active
 				? Quaternion.Euler(0f, 0f, rotationDegrees)
 				: originalRotation;
 			Quaternion newRot = Quaternion.RotateTowards(currentRot, desiredRot, speed * 4f * Time.unscaledDeltaTime);
 
-			// Only update if changed
 			if ((currentScale - newScale).sqrMagnitude > 0.0001f)
 				target.localScale = newScale;
 			if (Quaternion.Angle(currentRot, newRot) > 0.01f)
@@ -159,6 +160,8 @@ namespace Dodad.XSplitscreen.Components
 			EnableCancelButton = true;
 
 			Instances.Add(this);
+
+			OnClaimUpdated += ClaimUpdatedHandler;
 		}
 
 		public void OnDestroy()
@@ -166,6 +169,13 @@ namespace Dodad.XSplitscreen.Components
 			CleanupCursor();
 
 			Instances.Remove(this);
+
+			OnClaimUpdated -= ClaimUpdatedHandler;
+		}
+
+		private void ClaimUpdatedHandler(bool state)
+		{
+			UpdateName();
 		}
 
 		public override int GetPriority() => int.MaxValue;
@@ -175,6 +185,8 @@ namespace Dodad.XSplitscreen.Components
 			Cleanup();
 			CleanupCursor();
 		}
+
+		public override bool CanOpen() => true;
 
 		public override string GetName() => "XSS_SELECT_SCREEN";
 
@@ -213,7 +225,6 @@ namespace Dodad.XSplitscreen.Components
 				if(_cursor == null)
 				{
 					_cursor = new GameObject("Cursor").AddComponent<RectTransform>();
-					_cursor.SetParent(Options.Slot.Panel.transform.parent.Find("Assignment Panel/DisplayContainer"));
 					_cursor.transform.localScale = Vector3.one;
 					_cursor.transform.position = transform.position;
 					_cursorImage = _cursor.gameObject.AddComponent<Image>();
@@ -227,6 +238,7 @@ namespace Dodad.XSplitscreen.Components
 					_controllerRect = Options.Slot.Panel.Controller.GetComponent<RectTransform>();
 				}
 
+				_cursor.SetParent(Options.Slot.Panel.transform.parent.Find("Assignment Panel/DisplayContainer"));
 				SetCursorVisibility(true);
 			}
 
@@ -259,6 +271,11 @@ namespace Dodad.XSplitscreen.Components
 					}
 
 				}
+			}
+
+			if(SplitscreenMenuController.ReadyToLoad && IsReady)
+			{
+				Options.SetMessage(((int) SplitscreenMenuController.LoadTimer).ToString(), Color.green);
 			}
 		}
 
@@ -333,10 +350,20 @@ namespace Dodad.XSplitscreen.Components
 
 		private void UpdateName()
 		{
+			if (!_isOpen)
+				return;
+
 			if (_claim == null)
 				Options.SetMessage("XSS_SELECT_SCREEN");
 			else
-				Options.SetMessage("XSS_READY", Color.green);
+			{
+				int total = Instances.Where(x => x.Options.Slot.LocalPlayer != null).Count();
+				int ready = Instances.Where(x => x.IsReady).Count();
+
+				string s = Language.GetString("XSS_READY", Language.currentLanguage.name);
+
+				Options.SetMessage($"{s} ({ready} / {total})", Color.yellow);
+			}
 		}
 
 		private void HandleClick()

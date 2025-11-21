@@ -11,17 +11,19 @@ namespace Dodad.XSplitscreen.Components
 	{
 		private static List<AssignmentPanel> Instances;
 
+		internal SplitscreenMenuController Controller { get; private set; }
+
 		public AssignmentDisplayController Display => _display;
 		private Graph _graph;
 		private AssignmentDisplayController _display;
 		private Image _initialImage;
 		private MPButton[] _insertButtons;
-
-		private int _targetDisplay;
 		//-----------------------------------------------------------------------------------------------------------
 
-		public void Initialize()
+		public void Initialize(SplitscreenMenuController controller)
 		{
+			Controller = controller;
+			
 			Instances ??= new();
 			Instances.Add(this);
 
@@ -79,37 +81,38 @@ namespace Dodad.XSplitscreen.Components
 
 		private void Start()
 		{
-			if (_targetDisplay != 0)
+			if (Display.Panel.Controller.monitorId != 0)
 				return;
 
-			// Online Toggle
+			var toggleContainer = _display.transform.Find("VerticalLayout/Bottom/Filler");
+			var containerLayout = toggleContainer.gameObject.AddComponent<HorizontalLayoutGroup>();
+			containerLayout.spacing = 24;
 
-			if (_targetDisplay == 0)
+			var onlineToggle = UIHelper.GetPrefab(UIHelper.EUIPrefabIndex.Toggle);
+			onlineToggle.transform.SetParent(toggleContainer.transform);
+			onlineToggle.transform.localPosition = Vector3.zero;
+			onlineToggle.transform.localScale = Vector3.one;
+			var toggleLayout = onlineToggle.AddComponent<LayoutElement>();
+			toggleLayout.flexibleWidth = 1;
+			toggleLayout.preferredWidth = 96;
+
+			var toggle = onlineToggle.GetComponentInChildren<MPToggle>();
+			toggle.SetIsOnWithoutNotify(SplitscreenUserManager.OnlineMode);
+			toggle.onValueChanged.AddListener((x) =>
 			{
-				var toggleContainer = _display.transform.Find("VerticalLayout/Bottom/Filler");
-				var containerLayout = toggleContainer.gameObject.AddComponent<HorizontalLayoutGroup>();
-				containerLayout.spacing = 24;
+				Log.Print($"Updating online to '{x}'");
+				SplitscreenUserManager.OnlineMode = x;
+			});
+			onlineToggle.gameObject.SetActive(true);
 
-				var onlineToggle = UIHelper.GetPrefab(UIHelper.EUIPrefabIndex.Toggle);
-				onlineToggle.transform.SetParent(toggleContainer.transform);
-				onlineToggle.transform.localPosition = Vector3.zero;
-				onlineToggle.transform.localScale = Vector3.one;
-				var toggleLayout = onlineToggle.AddComponent<LayoutElement>();
-				toggleLayout.flexibleWidth = 1;
-				toggleLayout.preferredWidth = 96;
-
-				onlineToggle.GetComponentInChildren<MPToggle>().SetIsOnWithoutNotify(false);
-				onlineToggle.gameObject.SetActive(true);
-
-				var onlineText = UIHelper.GetPrefab(UIHelper.EUIPrefabIndex.SimpleText);
-				onlineText.transform.SetParent(toggleContainer.transform);
-				onlineText.transform.localPosition = Vector3.zero;
-				onlineText.transform.localScale = Vector3.one;
-				onlineText.GetComponent<HGTextMeshProUGUI>().enableWordWrapping = false;
-				onlineText.GetComponent<HGTextMeshProUGUI>().raycastTarget = false;
-				onlineText.GetComponent<LanguageTextMeshController>().token = "XSS_ONLINE";
-				onlineText.gameObject.SetActive(true);
-			}
+			var onlineText = UIHelper.GetPrefab(UIHelper.EUIPrefabIndex.SimpleText);
+			onlineText.transform.SetParent(toggleContainer.transform);
+			onlineText.transform.localPosition = Vector3.zero;
+			onlineText.transform.localScale = Vector3.one;
+			onlineText.GetComponent<HGTextMeshProUGUI>().enableWordWrapping = false;
+			onlineText.GetComponent<HGTextMeshProUGUI>().raycastTarget = false;
+			onlineText.GetComponent<LanguageTextMeshController>().token = "XSS_ONLINE";
+			onlineText.gameObject.SetActive(true);
 		}
 
 		//-----------------------------------------------------------------------------------------------------------

@@ -43,6 +43,8 @@ namespace Dodad.XSplitscreen.Components
 
 		#region Public Properties
 
+		public UnityEngine.Rect ScreenRect => _options.GetConfigurator<AssignmentConfigurator>()?.Rect ?? new(0, 0, 1, 1);
+
 		/// <summary>
 		/// The Rewired Player assigned to this slot. Setting this updates associated systems.
 		/// </summary>
@@ -56,6 +58,9 @@ namespace Dodad.XSplitscreen.Components
 				_localPlayer = value;
 				SetLocalPlayerListenerState(true);
 				_provider.eventSystem = value == null ? null : MPEventSystem.FindByPlayer(value);
+
+				if(_provider.eventSystem != null)
+					_provider.
 				name = $"[{(value == null ? "Open" : value.name)}] Local User Slot {Instances.IndexOf(this)}";
 				OnPlayerChanged?.Invoke(this);
 			}
@@ -67,7 +72,17 @@ namespace Dodad.XSplitscreen.Components
 		public UserProfile Profile
 		{
 			get => _profile;
-			set => _profile = value;
+			set
+			{
+				if (_profile != null)
+				{
+					OnUnloadProfile?.Invoke();
+				}
+
+				_profile = value;
+
+				OnLoadProfile?.Invoke();
+			}
 		}
 
 		public Color MainColor = Color.white;
@@ -75,23 +90,13 @@ namespace Dodad.XSplitscreen.Components
 		/// <summary>
 		/// Determines if this slot is using a keyboard/mouse as input.
 		/// </summary>
-		public bool IsKeyboardUser => LocalPlayer?.controllers.hasKeyboard ?? false;/*LocalPlayer != null && GetDeviceKeyForCurrentController(LocalPlayer) == "keyboard";*/
+		public bool IsKeyboardUser => LocalPlayer?.controllers.hasKeyboard ?? false;
 
 		public Action<int> OnNavigateIndex;
 		public Action OnCancel;
 		public Action OnConfirm;
-
-/*		public bool EnableNavigationRight
-		{
-			get => _rightArrowButton.interactable;
-			set => _rightArrowButton.interactable = value;
-		}
-
-		public bool EnableNavigationLeft
-		{
-			get => _leftArrowButton.interactable;
-			set => _leftArrowButton.interactable = value;
-		}*/
+		public Action OnUnloadProfile;
+		public Action OnLoadProfile;
 		
 		public int NavigatorCount
 		{
@@ -139,12 +144,8 @@ namespace Dodad.XSplitscreen.Components
 		private Transform _titleContainer;
 		private Transform _configuratorContainer;
 		private LanguageTextMeshController _titleController;
-		/*private MPButton _leftArrowButton;
-		private MPButton _rightArrowButton;*/
 		private MPButton _cancelButton;
 		private MPButton _confirmButton;
-		//private Image _leftArrowImage;
-		//private Image _rightArrowImage;
 		private Image _cancelImage;
 		private Image _confirmImage;
 		private SlotOptions _options;
@@ -191,7 +192,10 @@ namespace Dodad.XSplitscreen.Components
 		{
 			Instances.Remove(this);
 			if (Instances.Count == 0)
+			{
+				Instances = null;
 				OnPlayerChanged -= ResolveSlotState;
+			}
 			SetLocalPlayerListenerState(false);
 		}
 
@@ -311,7 +315,7 @@ namespace Dodad.XSplitscreen.Components
 		private void UpdateDeviceIconAlpha()
 		{
 			var currentColor = new Color(MainColor.r, MainColor.g, MainColor.b, _deviceIcon.color.a);
-			float alphaDirection = Time.deltaTime * 10f * (LocalPlayer != null && Input.Any ? 1 : -1);
+			float alphaDirection = Time.deltaTime * 10f * (LocalPlayer != null && (Input.MouseActive || Input.Any) ? 1 : -1);
 			var newAlpha = Mathf.Clamp(currentColor.a + alphaDirection, MIN_DEVICE_ALPHA, 1f);
 			_deviceIcon.color = new Color(currentColor.r, currentColor.g, currentColor.b, newAlpha);
 		}
@@ -321,13 +325,13 @@ namespace Dodad.XSplitscreen.Components
 		/// </summary>
 		private void HandleDisplaySlotMovement()
 		{
+			if (IsKeyboardUser)
+				return;
+
 			int displayDirection = GetDisplayDirection();
 			if (displayDirection == 0) return;
 
-			int panelIndex = LocalUserPanel.Instances.IndexOf(_panel);
-			if (panelIndex == -1) return;
-
-			MoveSlotToRequestedDisplay(displayDirection, panelIndex, _panel);
+			MoveSlotByDirection(displayDirection);
 		}
 
 		/// <summary>
@@ -343,8 +347,12 @@ namespace Dodad.XSplitscreen.Components
 		/// <summary>
 		/// Moves the slot to another display panel.
 		/// </summary>
-		private void MoveSlotToRequestedDisplay(int displayDirection, int panelIndex, LocalUserPanel currentPanel)
+		internal void MoveSlotByDirection(int displayDirection)
 		{
+			var currentPanel = _panel;
+			int panelIndex = LocalUserPanel.Instances.IndexOf(_panel);
+			if (panelIndex == -1) return;
+
 			bool foundDisplay = false;
 			int panelCount = LocalUserPanel.Instances.Count;
 
@@ -578,11 +586,11 @@ namespace Dodad.XSplitscreen.Components
 			if (controller == null)
 				return "x";
 
-			string controllerType = controller.inputSource.ToString().ToLower();
+			string controllerType = controller.name.ToString().ToLower();
 
-			if (controllerType == "ps4" || controllerType == "ps5")
+			if (controllerType.Contains("sony"))
 				return "ps";
-			else if (controllerType == "unitykeyboardandmouse" || controllerType == "rawinput")
+			else if (controller is Keyboard || controller is Mouse)
 				return "keyboard";
 			else
 				return "xbox";
@@ -642,6 +650,8 @@ namespace Dodad.XSplitscreen.Components
 			public bool RB { get; private set; }
 			public float LeftRightDelta { get; private set; }
 			public float UpDownDelta { get; private set; }
+			public bool MouseLeft { get; private set; }
+			public bool MouseActive { get; private set; }
 
 			private float pressDelay = 0.3f;
 			private float leftTimer, rightTimer, southTimer, eastTimer, upTimer, downTimer, lbTimer, rbTimer;
@@ -651,7 +661,8 @@ namespace Dodad.XSplitscreen.Components
 			/// </summary>
 			public void Update(Player player)
 			{
-				Any = Left = Right = South = East = Up = Down = LB = RB = false;
+				Any = Left = Right = South = East = Up = Down = LB = RB = MouseLeft = MouseActive = false;
+				LeftRightDelta = UpDownDelta = 0f;
 
 				leftTimer -= Time.deltaTime;
 				rightTimer -= Time.deltaTime;
@@ -694,6 +705,9 @@ namespace Dodad.XSplitscreen.Components
 					eastValue |= player.controllers.Keyboard.GetKey(KeyCode.Escape) | player.controllers.Keyboard.GetKey(KeyCode.Backspace);*/
 					southValue |= player.controllers.Keyboard.GetKey(KeyCode.RightArrow);
 					eastValue |= player.controllers.Keyboard.GetKey(KeyCode.LeftArrow);
+
+					MouseLeft = player.controllers.Mouse.GetButton(0);
+					MouseActive = new Vector2(LeftRightDelta, UpDownDelta).sqrMagnitude > 0.1f;
 
 					// Keyboard user on alternate monitor not supported for now
 					/*lbValue |= player.controllers.Keyboard.GetKey(KeyCode.Q);
@@ -741,7 +755,7 @@ namespace Dodad.XSplitscreen.Components
 					rbTimer = pressDelay;
 				}
 
-				Any = player.GetAnyButton() || new Vector2(LeftRightDelta, UpDownDelta).sqrMagnitude > 0.1f;
+				Any = player.GetAnyButton();
 			}
 		}
 

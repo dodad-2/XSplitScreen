@@ -1,8 +1,9 @@
 ﻿using Rewired;
 using RoR2;
+using RoR2.UI.MainMenu;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
+using UnityEngine;
 using static Dodad.XSplitscreen.Log;
 
 namespace Dodad.XSplitscreen
@@ -23,6 +24,10 @@ namespace Dodad.XSplitscreen
 		public int UserIndex { get; set; }
 
 		public Player InputPlayer { get; set; }
+
+		public UnityEngine.Rect CameraRect { get; set; }
+
+		public int Display { get; set; }
 	}
 
 	/// <summary>
@@ -46,6 +51,15 @@ namespace Dodad.XSplitscreen
 		public Player InputPlayer { get; private set; }
 
 		/// <summary>
+		/// Screen area for the player
+		/// </summary>
+		public UnityEngine.Rect CameraRect { get; private set; }
+
+		public int Display { get; private set; }
+
+		public Transform ParticleSystem;
+
+		/// <summary>
 		/// Initializes a new local user from assignment data
 		/// </summary>
 		/// <param name="data">User assignment data</param>
@@ -54,6 +68,8 @@ namespace Dodad.XSplitscreen
 			Profile = data.Profile;
 			UserIndex = data.UserIndex;
 			InputPlayer = data.InputPlayer;
+			CameraRect = data.CameraRect;
+			Display = data.Display;
 		}
 
 		/// <summary>
@@ -63,7 +79,7 @@ namespace Dodad.XSplitscreen
 		/// <returns>Settings module instance</returns>
 		public T GetSettingsModule<T>() where T : class, IUserSettingsModule, new()
 		{
-			return SplitScreenSettings.GetUserModule<T>(Profile.saveID);
+			return SplitScreenSettings.GetUserModule<T>(Profile.fileName);
 		}
 	}
 
@@ -75,12 +91,26 @@ namespace Dodad.XSplitscreen
 		/// <summary>
 		/// List of local users for splitscreen
 		/// </summary>
-		private static List<LocalUser> localUsers = new List<LocalUser>();
+		public static IReadOnlyList<LocalUser> LocalUsers => localUsers.AsReadOnly();
+
+		private static readonly List<LocalUser> localUsers = new List<LocalUser>();
+
+		/// <summary>
+		/// Invoked when splitscreen is enabled or disabled.
+		/// </summary>
+		public static Action<bool> OnStateChange;
+
+		public static bool IsSplitscreenEnabled => isSplitscreenEnabled;
 
 		/// <summary>
 		/// Indicates if splitscreen is currently enabled
 		/// </summary>
 		private static bool isSplitscreenEnabled = false;
+
+		/// <summary>
+		/// Set to true before enabling splitscreen for online play.
+		/// </summary>
+		public static bool OnlineMode;
 
 		/// <summary>
 		/// Receives user assignment data and creates local users
@@ -94,7 +124,7 @@ namespace Dodad.XSplitscreen
 			{
 				LocalUser user = new LocalUser(assignment);
 				localUsers.Add(user);
-				Print($"Added local user with SaveID: {user.Profile.name}, UserIndex: {user.UserIndex}", ELogChannel.Debug);
+				Print($"Added local user: '{user.Profile.name}', UserIndex: '{user.UserIndex}', Display: '{user.Display}',", ELogChannel.Debug);
 			}
 		}
 
@@ -114,33 +144,12 @@ namespace Dodad.XSplitscreen
 
 			Print($"Enabling splitscreen mode for {localUsers.Count} users", ELogChannel.Info);
 
-			// Load local users
-
-			List<LocalUserManager.LocalUserInitializationInfo> init = new List<LocalUserManager.LocalUserInitializationInfo>();
-
-			foreach (var user in localUsers)
-			{
-				Print($"User '{user.Profile.name}' with InputPlayer '{user.InputPlayer.name}'");
-				init.Add(new LocalUserManager.LocalUserInitializationInfo()
-				{
-					player = user.InputPlayer,
-					profile = user.Profile
-				});
-			}
-
-			var oldPlayer = RoR2.UI.MPEventSystem.FindByPlayer(localUsers[0].InputPlayer);
-
-			Log.Print($"OLD PLAYER -> '{oldPlayer.name}'");
-			LocalUserManager.ClearUsers();
-			LocalUserManager.SetLocalUsers(init.ToArray());
-			oldPlayer = RoR2.UI.MPEventSystem.FindByPlayer(localUsers[0].InputPlayer);
-			Log.Print($"NEW PLAYER -> '{oldPlayer.name}'");
-
 			isSplitscreenEnabled = true;
 
-			//RoR2Application.SetIsInLocalMultiplayer(true);
-
-			//RoR2.Console.instance.SubmitCmd(null, "transition_command \"gamemode ClassicRun; host 0;\"");
+			RoR2Application.SetIsInLocalMultiplayer(true);
+			LoadLocalUsers();
+			OnStateChange?.Invoke(true);
+			TransitionToLobby();
 		}
 
 		/// <summary>
@@ -153,11 +162,52 @@ namespace Dodad.XSplitscreen
 
 			Print("Disabling splitscreen mode", ELogChannel.Info);
 
+			isSplitscreenEnabled = false;
+
+			ClearLocalUsers();
+			OnStateChange?.Invoke(false);
+		}
+
+		private static void TransitionToLobby()
+		{
+			//RoR2.Console.instance.SubmitCmd(null, "transition_command \"gamemode ClassicRun; host 0;\"");
+			if (OnlineMode)
+				MainMenuController.instance.SetDesiredMenuScreen(MainMenuController.instance.multiplayerMenuScreen);
+			//	PlatformSystems.lobbyManager.EnterGameButtonPressed();
+			else
+				RoR2.Console.instance.SubmitCmd(null, "transition_command \"gamemode ClassicRun; host 0;\"");
+		}
+
+		private static void LoadLocalUsers()
+		{
+			// Load local users
+
+			List<LocalUserManager.LocalUserInitializationInfo> init = new();
+
+			foreach (var user in localUsers)
+			{
+				init.Add(new LocalUserManager.LocalUserInitializationInfo()
+				{
+					player = user.InputPlayer,
+					profile = user.Profile
+				});
+
+				user.InputPlayer.isPlaying = true;
+			}
+
+			LocalUserManager.ClearUsers();
+			LocalUserManager.SetLocalUsers([.. init]);
+		}
+
+		private static void ClearLocalUsers()
+		{
+			localUsers.Clear();
+
 			var profile = LocalUserManager.localUsersList[0].userProfile;
 
 			var playerMain = ReInput.players.GetPlayer("PlayerMain");
 
-			foreach(var player in ReInput.players.Players)
+			foreach (var player in ReInput.players.Players)
 			{
 				if (player.name == "PlayerMain" || player.name == "System")
 					continue;
@@ -176,8 +226,6 @@ namespace Dodad.XSplitscreen
 					profile = profile
 				}
 			});
-
-			isSplitscreenEnabled = false;
 		}
 
 		/// <summary>
@@ -189,6 +237,11 @@ namespace Dodad.XSplitscreen
 			return new List<LocalUser>(localUsers);
 		}
 
+		public static LocalUser GetUserByInputName(string name)
+		{
+			return localUsers.Find(user => user.InputPlayer.name == name);
+		}
+
 		/// <summary>
 		/// Gets a local user by their user index
 		/// </summary>
@@ -197,25 +250,6 @@ namespace Dodad.XSplitscreen
 		public static LocalUser GetUserByIndex(int userIndex)
 		{
 			return localUsers.Find(user => user.UserIndex == userIndex);
-		}
-
-		/// <summary>
-		/// Gets a local user by their save ID
-		/// </summary>
-		/// <param name="saveID">The user's save ID</param>
-		/// <returns>The local user or null if not found</returns>
-		public static LocalUser GetUserBySaveID(ulong saveID)
-		{
-			return localUsers.Find(user => user.Profile.saveID == saveID);
-		}
-
-		/// <summary>
-		/// Checks if splitscreen mode is currently enabled
-		/// </summary>
-		/// <returns>True if splitscreen is enabled, false otherwise</returns>
-		public static bool IsSplitscreenEnabled()
-		{
-			return isSplitscreenEnabled;
 		}
 	}
 }

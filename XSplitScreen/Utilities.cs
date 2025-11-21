@@ -13,66 +13,6 @@ namespace Dodad.XSplitscreen
 	internal static class Utilities
 	{
 		/// <summary>
-		/// Adds an Image component to the current GameObject and sets its sprite to the default Unity white texture.
-		/// </summary>
-		public static void AddDefaultImage(GameObject gameObject)
-		{
-			// Add an Image component if it doesn't already exist
-			Image image = gameObject.GetComponent<Image>();
-
-			if (image == null)
-			{
-				image = gameObject.AddComponent<Image>();
-			}
-
-			// Assign the default white sprite
-			image.sprite = Sprite.Create(
-				Texture2D.whiteTexture,
-				new Rect(0, 0, Texture2D.whiteTexture.width, Texture2D.whiteTexture.height),
-				new Vector2(0.5f, 0.5f)
-			);
-
-			// Optionally, set Image type to Simple and preserve aspect
-			image.type = Image.Type.Simple;
-			image.preserveAspect = false;
-		}
-
-		/// <summary>
-		/// Aligns the RectTransform to the left or right edge of its parent, based on the input string.
-		/// </summary>
-		/// <param name="rectTransform">The RectTransform to align.</param>
-		/// <param name="side">"left" or "right".</param>
-		public static void AlignToEdge(RectTransform rectTransform, string side)
-		{
-			if (rectTransform == null || rectTransform.parent == null)
-				return;
-
-			// Anchor and pivot settings for left/right alignment
-			if (side == "left")
-			{
-				rectTransform.anchorMin = new Vector2(0f, rectTransform.anchorMin.y);
-				rectTransform.anchorMax = new Vector2(0f, rectTransform.anchorMax.y);
-				rectTransform.pivot = new Vector2(0f, rectTransform.pivot.y);
-
-				// Attach to leftmost edge
-				rectTransform.anchoredPosition = new Vector2(0f, rectTransform.anchoredPosition.y);
-			}
-			else if (side == "right")
-			{
-				rectTransform.anchorMin = new Vector2(1f, rectTransform.anchorMin.y);
-				rectTransform.anchorMax = new Vector2(1f, rectTransform.anchorMax.y);
-				rectTransform.pivot = new Vector2(1f, rectTransform.pivot.y);
-
-				// Attach to rightmost edge
-				rectTransform.anchoredPosition = new Vector2(0f, rectTransform.anchoredPosition.y);
-			}
-			else
-			{
-				Log.Print("AlignToEdge: side must be \"left\" or \"right\".", Log.ELogChannel.Warning);
-			}
-		}
-
-		/// <summary>
 		/// Sets the child RectTransform to fill a percentage of the parent's area with a uniform margin.
 		/// For example, margin = 0.9 means the child fills 90% of parent (10% margin).
 		/// This preserves the aspect ratio correctly and centers the child in the parent.

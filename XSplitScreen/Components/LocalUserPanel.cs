@@ -1,5 +1,4 @@
-﻿using DoDad.XSplitScreen;
-using Rewired;
+﻿using Rewired;
 using RoR2;
 using RoR2.UI;
 using System;
@@ -19,11 +18,11 @@ namespace Dodad.XSplitscreen.Components
 		/// <summary>
 		/// Should players be allowed to make changes to any slots or slot options?
 		/// </summary>
-		internal static bool AllowChanges { get; private set; }
+		public static bool AllowChanges { get; internal set; }
 
 		private static bool subscribed;
 
-		internal const int MAX_USERS = 8;
+		internal const int MAX_USERS = 16;
 
 		public SplitscreenMenuController Controller => _controller;
 		internal LocalUserSlot[] UserSlots => userContainer.GetComponentsInChildren<LocalUserSlot>();
@@ -67,15 +66,6 @@ namespace Dodad.XSplitscreen.Components
 					if (currentPlayer.GetButtonDown(11))
 						TryAddPlayerToSlot(currentPlayer);
 				}
-				/*else
-				{
-					if (currentPlayer.GetButton(15))
-					{
-						currentPlayer.SetVibration(0, currentPlayer.GetVibration(0) + (Time.deltaTime * 10f), true);
-						if(currentPlayer.GetButtonTimedPressDown(15, 0.5f))
-							TryRemovePlayerFromSlot(currentPlayer, slot);
-					}
-				}*/
 			}
 		}
 
@@ -153,7 +143,7 @@ namespace Dodad.XSplitscreen.Components
 				return false;
 
 			slot.transform.SetParent(userContainer);
-			slot.transform.localScale = Vector3.one;
+			//slot.transform.localScale = Vector3.one;
 
 			if (transform.childCount == MAX_USERS)
 				Destroy(freeSlot.gameObject);
@@ -314,8 +304,6 @@ namespace Dodad.XSplitscreen.Components
 					LocalUserSlot.DeviceIcons.Add(icon.Split("/")
 						.Reverse().First().Replace("device_", "").Replace(".png", ""), Plugin.Resources.LoadAsset<Sprite>(icon));
 			}
-
-			AllowChanges = true;
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -330,8 +318,6 @@ namespace Dodad.XSplitscreen.Components
 				ReInput.ControllerConnectedEvent -= OnControllerAddedEvent;
 				subscribed = false;
 			}
-
-			AllowChanges = false;
 		}
 
 		//-----------------------------------------------------------------------------------------------------------

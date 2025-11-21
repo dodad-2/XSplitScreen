@@ -28,6 +28,11 @@ namespace Dodad.XSplitscreen.Components
 		public bool EnableCancelButton;
 
 		/// <summary>
+		/// Indicates whether the user may open this configurator for editing.
+		/// </summary>
+		public virtual bool CanOpen() => false;
+
+		/// <summary>
 		/// Indicates whether the confirmation button should be enabled for this configurator.
 		/// </summary>
 		public bool EnableConfirmButton;
@@ -53,7 +58,7 @@ namespace Dodad.XSplitscreen.Components
 		public Action OnFinished;
 
 		/// <summary>
-		/// Handles navigation input from the D-pad.
+		/// Handles vertical navigation input from the D-pad.
 		/// </summary>
 		/// <param name="direction">Direction (-1 for left, 1 for right)</param>
 		public abstract void OnNavigate(int direction);
@@ -89,5 +94,15 @@ namespace Dodad.XSplitscreen.Components
 		/// Override to implement input handling and updates.
 		/// </summary>
 		public virtual void ConfiguratorUpdate() { }
+
+		/// <summary>
+		/// Called when a new profile has loaded.
+		/// </summary>
+		public virtual void OnLoadProfile() { }
+
+		/// <summary>
+		/// Called when the current profile is about to be unloaded.
+		/// </summary>
+		public virtual void OnUnloadProfile() { }
 	}
 }

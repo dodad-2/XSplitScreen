@@ -32,7 +32,6 @@ namespace Dodad.XSplitscreen.Components
 
 		private string[] _profileKeys;
 		private int _profileIndex;
-		//private HGTextMeshProUGUI _messageTextMesh;
 		private bool _isOpen;
 
 		#endregion
@@ -58,8 +57,9 @@ namespace Dodad.XSplitscreen.Components
 		/// </summary>
 		public void Awake()
 		{
-			EnableConfirmButton = true;
-			//SetupMessageUI();
+			_activeProfiles ??= new List<string>();
+			EnableConfirmButton = true; 
+			_profileKeys = GetValidProfiles(null);
 		}
 
 		/// <summary>
@@ -77,25 +77,6 @@ namespace Dodad.XSplitscreen.Components
 
 		#endregion
 
-		#region UI Setup
-
-		/// <summary>
-		/// Sets up the message UI for displaying the selected profile name.
-		/// </summary>
-		private void SetupMessageUI()
-		{
-			var messageText = UIHelper.GetPrefab(UIHelper.EUIPrefabIndex.SimpleText);
-			var messageLayoutElement = messageText.AddComponent<LayoutElement>();
-			messageLayoutElement.flexibleWidth = 1f;
-			messageText.transform.SetParent(transform, false);
-			Destroy(messageText.GetComponent<LanguageTextMeshController>());
-			//_messageTextMesh = messageText.GetComponent<HGTextMeshProUGUI>();
-			SetMessage(null, Color.white);
-			messageText.gameObject.SetActive(false);
-		}
-
-		#endregion
-
 		#region Profile Management
 
 		/// <summary>
@@ -109,14 +90,14 @@ namespace Dodad.XSplitscreen.Components
 			_messageTextMesh.gameObject.SetActive(text != null);*/
 		}
 
+		public override bool CanOpen() => GetValidProfiles(Options.Slot.Profile?.fileName).Length > 0;
+		
 		/// <summary>
 		/// Opens the profile selector interface.
 		/// </summary>
 		public override void Open()
 		{
 			Log.Print($"ProfileConfigurator.Open: '{transform.parent.parent.name}' subscribing");
-
-			_activeProfiles ??= new List<string>();
 
 			OnProfileSelected();
 			_onProfileSelect += OnProfileSelected;
@@ -131,9 +112,10 @@ namespace Dodad.XSplitscreen.Components
 		{
 			if (_isOpen)
 			{
-				_onProfileSelect -= OnProfileSelected;
+				OnConfirm();
+				/*_onProfileSelect -= OnProfileSelected;
 				_isOpen = false;
-				SetMessage(null, Color.white);
+				SetMessage(null, Color.white);*/
 			}
 		}
 
@@ -146,12 +128,7 @@ namespace Dodad.XSplitscreen.Components
 
 			string currentProfile = Options.Slot.Profile?.fileName;
 
-			// Find valid profiles (current one and those not active)
-			_profileKeys = PlatformSystems.saveSystem.loadedUserProfiles.Keys
-				.Where(x =>
-					x == currentProfile ||
-					!_activeProfiles.Contains(x))
-				.ToArray();
+			_profileKeys = GetValidProfiles(currentProfile);
 
 			// If the current profile exists in the pool, set it as the selected index
 			if (currentProfile != null)
@@ -166,16 +143,26 @@ namespace Dodad.XSplitscreen.Components
 				}
 			}
 
-			if (_profileKeys.Length == 0)
-				Log.Print("Need a guest profile!");
-
 			UpdateProfileName();
 			UpdateNavigatorCount();
 		}
 
 		private void UpdateNavigatorCount()
 		{
-			NavigatorCount = _profileKeys.Length;
+			NavigatorCount = GetValidProfiles(Options.Slot.Profile?.fileName).Length;
+		}
+
+		/// <summary>
+		/// Find valid profiles (current one and those not active)
+		/// </summary>
+		/// <param name="currentProfileFilename">The profile to exclude from the filter (it will be included in the results)</param>
+		/// <returns></returns>
+		private string[] GetValidProfiles(string currentProfileFilename)
+		{
+			return _profileKeys = PlatformSystems.saveSystem.loadedUserProfiles.Keys
+				.Where(x =>
+					x == currentProfileFilename ||
+					!_activeProfiles.Contains(x)).ToArray();
 		}
 
 		private void UpdateNavigatorIndex()
@@ -209,7 +196,7 @@ namespace Dodad.XSplitscreen.Components
 
 			_isOpen = false;
 
-			OnFinished?.Invoke();
+			OnFinished();
 		}
 
 		/// <summary>
@@ -273,7 +260,7 @@ namespace Dodad.XSplitscreen.Components
 		/// </summary>
 		public override void ConfiguratorUpdate()
 		{
-			if (Options.Slot.Input.Up)
+			/*if (Options.Slot.Input.Up)
 			{
 				OnNavigate(-1);
 			}
@@ -281,7 +268,7 @@ namespace Dodad.XSplitscreen.Components
 			{
 				OnNavigate(1);
 			}
-			else if (Options.Slot.Input.South)
+			else */if (Options.Slot.Input.South)
 			{
 				OnConfirm();
 			}

@@ -10,6 +10,8 @@ namespace Dodad.XSplitscreen.Components
 	{
 		public bool IsClaimed => _configurator != null;
 
+		public Rect ScreenRect;
+
 		private AssignmentConfigurator _configurator;
 		private Image _bgImage;
 		private Color _originalColor;
@@ -25,6 +27,8 @@ namespace Dodad.XSplitscreen.Components
 			if(_configurator != null)
 				_configurator.ResetClaim();
 		}
+
+		internal void SetRect(Rect rect) => ScreenRect = rect;
 
 		public void Claim(AssignmentConfigurator slot)
 		{

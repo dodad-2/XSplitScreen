@@ -6,7 +6,7 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<Version>0.0.1</Version>
 		<AssemblyName>XSplitScreen</AssemblyName>
-		<RootNamespace>dodad.XSplitscreen</RootNamespace>
+		<RootNamespace>Dodad.XSplitscreen</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

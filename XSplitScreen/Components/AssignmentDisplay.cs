@@ -98,10 +98,9 @@ namespace Dodad.XSplitscreen.Components
 
 			updateAssignment = true;
 			frameCount = 0;
-
-
-
 			gameObject.SetActive(true);
+
+			UpdateRect();
 		}
 
 		public void UpdateTransforms()
@@ -132,6 +131,10 @@ namespace Dodad.XSplitscreen.Components
 			updateAssignment = false;
 			updateTransforms = true;
 			frameCount = 0;
+
+			this.face = face;
+
+			UpdateRect();
 		}
 
 		public void SetBGFillerActive(bool state)
@@ -336,6 +339,11 @@ namespace Dodad.XSplitscreen.Components
 			float max = float.MinValue;
 			foreach (var v in vals) if (v > max) max = v;
 			return max;
+		}
+
+		private void UpdateRect()
+		{
+			claim.SetRect(this.face.Rect);
 		}
 	}
 }

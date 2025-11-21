@@ -11,28 +11,33 @@ using RoR2.UI;
 using Newtonsoft.Json;
 using R2API;
 using Dodad.XSplitscreen.Components;
-using System.Runtime.CompilerServices;
 using System.IO;
+using UnityEngine.EventSystems;
 
 namespace Dodad.XSplitscreen
 {
-    [BepInPlugin(PluginGUID, PluginName, "4.0.0")]
+    [BepInPlugin(PluginGUID, PluginName, "4.0.3")]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
 	[BepInDependency(LanguageAPI.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
 	public class Plugin : BaseUnityPlugin
     {
 		#region Variables
+
 		public const string PluginGUID = PluginAuthor + "." + PluginName;
 		public const string PluginAuthor = "com.dodad";
 		public const string PluginName = "XSplitscreen";
+
+		public const int HardMaxPlayers = 16;
 
 		//-----------------------------------------------------------------------------------------------------------
 
 		public static Plugin Singleton { get; private set; }
         public static AssetBundle Resources { get; private set; }
-        public static Action OnOpenMenu;
+        public static System.Action OnOpenMenu;
+		internal static HarmonyLib.Harmony Patcher { get; private set; }
 
         private static HGButton MainMenuTitleButton;
+
 		#endregion
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -44,31 +49,22 @@ namespace Dodad.XSplitscreen
                 return;
 
             Singleton = this;
-            
-            // Load logger
 
             if (!LoadLogger())
                 return;
-
-            // Load assets
 
             if (!LoadAssets())
                 return;
             else
                 Log.Print($"Loaded '{Resources.GetAllAssetNames().Length}' assets");
 
-            // Handle patches
-
+			CreateParticleSystems();
 			SetGenericPatches();
-
-            // Load language tokens
 
             if (!LoadLanguage())
                 return;
             else
                 Log.Print("Loaded language");
-
-            // Set up listeners
 
             SetSubscriptions(true);
 
@@ -91,17 +87,29 @@ namespace Dodad.XSplitscreen
                 return;
             }*/
 		}
+
+		public void OnApplicationQuit()
+		{
+			Patcher.UnpatchSelf();
+		}
 		#endregion
 
 		//-----------------------------------------------------------------------------------------------------------
 
 		#region Initialization
+
+		private static void CreateParticleSystems()
+		{
+			ParticleSystemFactory.CreateAllParticleSystems();
+		}
+
 		/// <summary>
 		/// Load language file from disk and merge with defaults
 		/// </summary>
 		private static bool LoadLanguage()
 		{
-			string filePath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "language.json");
+			var baseDir = Path.GetDirectoryName(Singleton.Config.ConfigFilePath);
+			var filePath = Path.Combine(baseDir, "XSplitscreen", "language.json");
 
 			try
 			{
@@ -132,6 +140,11 @@ namespace Dodad.XSplitscreen
 					{
 						Log.Print($"Error reading language file: {ioEx.Message}. Using defaults.", Log.ELogChannel.Warning);
 					}
+				}
+				else
+				{
+					Directory.CreateDirectory(Path.GetDirectoryName(filePath));
+					File.Create(filePath).Dispose();
 				}
 
 				// Merge user tokens with defaults or use defaults if no valid user file
@@ -174,9 +187,6 @@ namespace Dodad.XSplitscreen
 				{ "XSS_NAME", "XSplitscreen" },
 				{ "XSS_OPTION_DISCORD", "Discord" },
 				{ "XSS_UNSET", "- not set -" },
-				{ "XSS_SELECT_SCREEN", "Select Screen" },
-				{ "XSS_READY", "READY" },
-				{ "XSS_ONLINE", "Online" }
 			};
 
 			// English (complete set - reference for other languages)
@@ -185,12 +195,20 @@ namespace Dodad.XSplitscreen
 			{
 				{ "XSS_NAME_HOVER", "Modify splitscreen settings." },
 				{ "XSS_OPTION_DISCORD_HOVER", "Join for support, feedback or updates" },
-				{ "XSS_PRESS_START_KBM", "- click or press start -" },
+				{ "XSS_PRESS_START_KBM", "- click here or press start -" },
 				{ "XSS_PRESS_START", "- press start -" },
-				{ "XSS_CONFIG_PROFILE", "Profile" },
+				{ "XSS_CONFIG_PROFILE", "Guest" },
 				{ "XSS_CONFIG_COLOR", "Color" },
 				{ "XSS_OPTION_MMM", "Multi-Monitor Mode" },
-				{ "XSS_OPTION_MMM_HOVER", "Enable Multi-Monitor Mode (cannot be disabled)" }
+				{ "XSS_OPTION_MMM_HOVER", "Enable Multi-Monitor Mode (cannot be disabled)" },
+				{ "XSS_TRAILS", "Trails" },
+				{ "XSS_SELECT_SCREEN", "Select Screen" },
+				{ "XSS_READY", "Ready" },
+				{ "XSS_ONLINE", "Online" },
+				{ "XSS_WARN", "Multiple instances of corrupted profiles and lost save data have been reported from users playing in the official local splitscreen mode on consoles. <br><br>XSplitscreen makes no guarantee concerning the safety of your profiles. It is HIGHLY RECOMMENDED to create backups before each session." },
+				{ "XSS_CREDITS", "Credits" },
+				{ "XSS_CREDITS_HOVER", "Enable or disable credits" },
+				{ "XSS_SELECT_MONITOR", "Select Monitor" },
 			});
 
 			// Portuguese (Brazilian)
@@ -201,10 +219,18 @@ namespace Dodad.XSplitscreen
 				{ "XSS_OPTION_DISCORD_HOVER", "Entre para suporte, dar feedback ou ver atualizações" },
 				{ "XSS_PRESS_START_KBM", "- clique ou pressione start -" },
 				{ "XSS_PRESS_START", "- pressione start -" },
-				{ "XSS_CONFIG_PROFILE", "Perfil" },
+				{ "XSS_CONFIG_PROFILE", "Guest" },
 				{ "XSS_CONFIG_COLOR", "Cor" },
 				{ "XSS_OPTION_MMM", "Modo Multi-Monitor" },
-				{ "XSS_OPTION_MMM_HOVER", "Ativar o Modo Multi-Monitor (não pode ser desativado)" }
+				{ "XSS_OPTION_MMM_HOVER", "Ativar o Modo Multi-Monitor (não pode ser desativado)" },
+				{ "XSS_TRAILS", "Trails" },
+				{ "XSS_SELECT_SCREEN", "Select Screen" },
+				{ "XSS_READY", "Ready" },
+				{ "XSS_ONLINE", "Online" },
+				{ "XSS_WARN", "Multiple instances of corrupted profiles and lost save data have been reported from users playing in the official local splitscreen mode on consoles. <br><br>XSplitscreen makes no guarantee concerning the safety of your profiles. It is HIGHLY RECOMMENDED to create backups before each session." },
+				{ "XSS_CREDITS", "Credits" },
+				{ "XSS_CREDITS_HOVER", "Enable or disable credits" },
+				{ "XSS_SELECT_MONITOR", "Select Monitor" },
 			});
 
 			// French
@@ -215,10 +241,18 @@ namespace Dodad.XSplitscreen
 				{ "XSS_OPTION_DISCORD_HOVER", "Rejoignez nous pour du support, du feedback ou des mises à jour" },
 				{ "XSS_PRESS_START_KBM", "- cliquez ou appuyez sur start -" },
 				{ "XSS_PRESS_START", "- appuyez sur start -" },
-				{ "XSS_CONFIG_PROFILE", "Profil" },
+				{ "XSS_CONFIG_PROFILE", "Guest" },
 				{ "XSS_CONFIG_COLOR", "Couleur" },
 				{ "XSS_OPTION_MMM", "Mode Multi-Écrans" },
-				{ "XSS_OPTION_MMM_HOVER", "Activer le Mode Multi-Écrans (ne peut pas être désactivé)" }
+				{ "XSS_OPTION_MMM_HOVER", "Activer le Mode Multi-Écrans (ne peut pas être désactivé)" },
+				{ "XSS_TRAILS", "Trails" },
+				{ "XSS_SELECT_SCREEN", "Select Screen" },
+				{ "XSS_READY", "Ready" },
+				{ "XSS_ONLINE", "Online" },
+				{ "XSS_WARN", "Multiple instances of corrupted profiles and lost save data have been reported from users playing in the official local splitscreen mode on consoles. <br><br>XSplitscreen makes no guarantee concerning the safety of your profiles. It is HIGHLY RECOMMENDED to create backups before each session." },
+				{ "XSS_CREDITS", "Credits" },
+				{ "XSS_CREDITS_HOVER", "Enable or disable credits" },
+				{ "XSS_SELECT_MONITOR", "Select Monitor" },
 			});
 
 			// Apply shared tokens to all languages
@@ -373,35 +407,65 @@ namespace Dodad.XSplitscreen
 		/// </summary>
 		private static void SetGenericPatches()
 		{
-			var harmony = new HarmonyLib.Harmony("com.dodad.xsplitscreen.hooks");
+			SplitscreenUserManager.OnStateChange += HookManager.OnStateChange;
+
+			Patcher = new HarmonyLib.Harmony("com.dodad.xsplitscreen.hooks");
 
 			// Resize RoR2Application max local players
 
 			var ror2AppResizePlayersOriginal = typeof(RoR2.RoR2Application).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
 			var ror2AppResizePlayersPatch = typeof(Plugin).GetMethod("RoR2AppResizePlayers", BindingFlags.Static | BindingFlags.NonPublic);
 
-			harmony.Patch(ror2AppResizePlayersOriginal, prefix: new HarmonyLib.HarmonyMethod(ror2AppResizePlayersPatch));
+			Patcher.Patch(ror2AppResizePlayersOriginal, prefix: new HarmonyLib.HarmonyMethod(ror2AppResizePlayersPatch));
 
 			// Add Rewired players
 
 			var rewiredClonePlayersOriginal = typeof(InputManager_Base).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
 			var rewiredClonePlayersPatch = typeof(Plugin).GetMethod("RewiredClonePlayers", BindingFlags.Static | BindingFlags.NonPublic);
 
-			harmony.Patch(rewiredClonePlayersOriginal, prefix: new HarmonyLib.HarmonyMethod(rewiredClonePlayersPatch));
+			Patcher.Patch(rewiredClonePlayersOriginal, prefix: new HarmonyLib.HarmonyMethod(rewiredClonePlayersPatch));
 
             // UI patches
 
             var mmcInteractableOriginal = typeof(RoR2.UI.MainMenu.MainMenuController).GetMethod("SetButtonsInteractible", BindingFlags.Instance | BindingFlags.Public);
             var mmcInteractablePatch = typeof(Plugin).GetMethod("SetButtonInteractable", BindingFlags.Static | BindingFlags.NonPublic);
 
-            harmony.Patch(mmcInteractableOriginal, prefix: new HarmonyLib.HarmonyMethod(mmcInteractablePatch));
+            Patcher.Patch(mmcInteractableOriginal, prefix: new HarmonyLib.HarmonyMethod(mmcInteractablePatch));
 
-			// Testing
+			// Fix input
 
-			var mpbAOriginal = typeof(RoR2.UI.MPButton).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
-			var mpbAPatch = typeof(Plugin).GetMethod("MPButton_Awake", BindingFlags.Static | BindingFlags.NonPublic);
+			var mpeAOriginal = typeof(MPEventSystem).GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic);
+			var mpeAPatch = typeof(Plugin).GetMethod("MPEventSystem_Update", BindingFlags.Static | BindingFlags.NonPublic);
 
-			harmony.Patch(mpbAOriginal, postfix: new HarmonyLib.HarmonyMethod(mpbAPatch));
+			Patcher.Patch(mpeAOriginal, prefix: new HarmonyLib.HarmonyMethod(mpeAPatch));
+
+			// Destroy additional canvases
+
+			var cscOriginal = typeof(RoR2.UI.CharacterSelectController).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic);
+			var cscPatch = typeof(Plugin).GetMethod("CharacterSelectController_Awake", BindingFlags.Static | BindingFlags.NonPublic);
+
+			Patcher.Patch(cscOriginal, prefix: new HarmonyLib.HarmonyMethod(cscPatch));
+
+			// Set local user names
+
+			var lunOriginal = typeof(RoR2.NetworkUser).GetMethod("UpdateUserName", BindingFlags.Instance | BindingFlags.Public);
+			var lunPatch = typeof(Plugin).GetMethod("NetworkUser_UpdateUserName", BindingFlags.Static | BindingFlags.NonPublic);
+
+			Patcher.Patch(lunOriginal, prefix: new HarmonyLib.HarmonyMethod(lunPatch));
+
+			// Combat health bar fix
+
+			var chbOriginal = typeof(RoR2.UI.CombatHealthBarViewer).GetMethod("SetLayoutHorizontal", BindingFlags.Instance | BindingFlags.Public);
+			var chbPatch = typeof(Plugin).GetMethod("CombatHealthBarViewer_SetLayoutHorizontal", BindingFlags.Static | BindingFlags.NonPublic);
+
+			Patcher.Patch(chbOriginal, prefix: new HarmonyLib.HarmonyMethod(chbPatch));
+
+			// Nameplate color
+
+			var npcOriginal = typeof(RoR2.UI.Nameplate).GetMethod("SetBody", BindingFlags.Instance | BindingFlags.Public);
+			var npcPatch = typeof(Plugin).GetMethod("Nameplate_SetBody", BindingFlags.Static | BindingFlags.NonPublic);
+
+			Patcher.Patch(npcOriginal, prefix: new HarmonyLib.HarmonyMethod(npcPatch));
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -523,8 +587,8 @@ namespace Dodad.XSplitscreen
             if (MainMenuTitleButton != null)
                 return;
 
-			if (SplitscreenUserManager.IsSplitscreenEnabled())
-				SplitscreenUserManager.DisableSplitscreen();
+			//if (SplitscreenUserManager.IsSplitscreenEnabled())
+			//	SplitscreenUserManager.DisableSplitscreen();
 
 			UIHelper.Initialize();
 
@@ -563,9 +627,120 @@ namespace Dodad.XSplitscreen
 		//-----------------------------------------------------------------------------------------------------------
 
 		#region Patching
-		private static void MPButton_Awake(RoR2.UI.MPButton __instance)
-		{
 
+		private static void Nameplate_SetBody(Nameplate __instance, RoR2.CharacterBody __0)
+		{
+			if (__0 != null && __0.master != null && __0.master.playerCharacterMasterController != null && __0.master.playerCharacterMasterController.networkUser != null &&
+				__0.master.playerCharacterMasterController.networkUser.localUser != null)
+			{
+				__instance.baseColor = RoR2.ColorCatalog.GetMultiplayerColor(__0.master.playerCharacterMasterController.networkUser.localUser.id);
+			}
+		}
+
+		private static bool CombatHealthBarViewer_SetLayoutHorizontal(RoR2.UI.CombatHealthBarViewer __instance)
+		{
+			if (__instance.uiCamera)
+			{
+				CombatHealthBarViewer.doingUIRebuild = true;
+				__instance.UpdateAllHealthbarPositions(__instance.uiCamera.cameraRigController.sceneCam, __instance.uiCamera.camera);
+				CombatHealthBarViewer.doingUIRebuild = false;
+			}
+
+			return false;
+		}
+
+		private static void NetworkUser_UpdateUserName(RoR2.NetworkUser __instance)
+		{
+			if (__instance.localUser == null)
+			{
+				ExecuteNextFrame.Invoke(() => NetworkUser_UpdateUserName(__instance));
+			}
+			else
+			{
+				__instance.userName = __instance.localUser.userProfile.name;
+			}
+		}
+
+		private static void CharacterSelectController_Awake(RoR2.UI.CharacterSelectController __instance)
+		{
+			ExecuteNextFrame.Invoke(new System.Action(() =>
+			{
+				if(__instance.gameObject.GetComponent<Canvas>().worldCamera == null)
+				{
+					Destroy(__instance.gameObject);
+				}
+			}));
+		}
+
+		private static MethodInfo _mpEventSystemBaseUpdate;
+
+		private static bool MPEventSystem_Update(MPEventSystem __instance)
+		{
+			var baseUpdate = (EventSystem es) =>
+			{
+				if (EventSystem.current != __instance)
+				{
+					return;
+				}
+				es.TickModules();
+				bool flag = false;
+				int count = es.m_SystemInputModules.Count;
+				for (int i = 0; i < count; i++)
+				{
+					BaseInputModule baseInputModule = es.m_SystemInputModules[i];
+					if (baseInputModule.IsModuleSupported() && baseInputModule.ShouldActivateModule())
+					{
+						if (es.m_CurrentInputModule != baseInputModule)
+						{
+							es.ChangeEventModule(baseInputModule);
+							flag = true;
+						}
+						break;
+					}
+				}
+				if (es.m_CurrentInputModule == null)
+				{
+					for (int j = 0; j < count; j++)
+					{
+						BaseInputModule baseInputModule2 = es.m_SystemInputModules[j];
+						if (baseInputModule2.IsModuleSupported())
+						{
+							es.ChangeEventModule(baseInputModule2);
+							flag = true;
+							break;
+						}
+					}
+				}
+				if (!flag && es.m_CurrentInputModule != null)
+				{
+					es.m_CurrentInputModule.Process();
+				}
+			};
+
+			EventSystem eventSystem = EventSystem.current;
+			EventSystem.current = __instance;
+
+			baseUpdate(__instance);
+
+			EventSystem.current = eventSystem;
+
+			__instance.ValidateCurrentSelectedGameobject();
+
+			if (__instance.player.GetButtonDown(25) &&
+				(PauseScreenController.instancesList.Count == 0 || SimpleDialogBox.instancesList.Count == 0))
+			{
+				if (!RoR2.PauseManager.isPaused)
+				{
+					RoR2.PauseManager.PausingPlayerID = __instance.player.id;
+				}
+				if (RoR2.PauseManager.PausingPlayerID == __instance.player.id &&
+					RoR2.Console.instance != null)
+				{
+					RoR2.Console.instance.SubmitCmd(null, "pause");
+				}
+			}
+
+			return false;
 		}
 
 		/// <summary>
@@ -604,19 +779,19 @@ namespace Dodad.XSplitscreen
 		//-----------------------------------------------------------------------------------------------------------
 
 		/// <summary>
-		/// Set RoR2's max local player count to 16
+		/// Increase max local player count
 		/// </summary>
 		/// <param name="__instance"></param>
 		private static void RoR2AppResizePlayers(RoR2.RoR2Application __instance)
 		{
-			typeof(RoR2.RoR2Application).GetField("maxLocalPlayers").SetValue(__instance, 16);
+			RoR2.RoR2Application.maxPlayers = HardMaxPlayers;
+			RoR2.RoR2Application.hardMaxPlayers = HardMaxPlayers;
+			RoR2.RoR2Application.maxLocalPlayers = HardMaxPlayers;
+
+			Patcher.Unpatch(typeof(RoR2.RoR2Application).GetMethod("Awake", BindingFlags.Instance | BindingFlags.NonPublic),
+				typeof(Plugin).GetMethod("RoR2AppResizePlayers", BindingFlags.Static | BindingFlags.NonPublic));
 		}
 
-		/*private static void CreateInitializationRoutine()
-        {
-            if (initializationCoroutine == null)
-                initializationCoroutine = instance.StartCoroutine(WaitToInitializeUI());
-        }*/
 		#endregion
 	}
 }

@@ -57,9 +57,7 @@ namespace Dodad.XSplitscreen.Components
 			CreateOptions();
 
 			SetupMessageUI();
-			SubscribeToNavigation();
-			//SetupMouseUI();
-			//SetMouseUIActive(false);
+			SubscribeToSlot();
 		}
 
 		/// <summary>
@@ -111,7 +109,16 @@ namespace Dodad.XSplitscreen.Components
 
 					if(IsEditing)
 					{
-						SetNavigationIndex(_configurators[_configuratorIndex].NavigatorIndex);
+						if (Slot.Input.Up)
+						{
+							OnNavigate(-1);
+						}
+						else if (Slot.Input.Down)
+						{
+							OnNavigate(1);
+						}
+
+						//SetNavigationIndex(_configurators[_configuratorIndex].NavigatorIndex);
 						SetMouseButtonsState(_configurators[_configuratorIndex].EnableConfirmButton, _configurators[_configuratorIndex].EnableCancelButton);
 					}
 				}
@@ -166,7 +173,7 @@ namespace Dodad.XSplitscreen.Components
 					optionConfiguratorType.IsAssignableFrom(x) && !x.IsAbstract))
 			{
 				OptionConfigurator configurator = (OptionConfigurator) new GameObject(type.Name).AddComponent(type);
-
+				configurator.gameObject.AddComponent<RectTransform>();
 				_configurators.Add(configurator);
 
 				configurator.OnFinished += OnFinished;
@@ -212,11 +219,13 @@ namespace Dodad.XSplitscreen.Components
 				OpenConfigurator();
 		}
 
-		private void SubscribeToNavigation()
+		private void SubscribeToSlot()
 		{
 			Slot.OnNavigateIndex += OnNavigateIndex;
 			Slot.OnCancel += OnCancel;
 			Slot.OnConfirm += OnConfirm;
+			Slot.OnLoadProfile += OnLoadProfile;
+			Slot.OnUnloadProfile += OnUnloadProfile;
 		}
 
 		/// <summary>
@@ -238,7 +247,10 @@ namespace Dodad.XSplitscreen.Components
 				}
 			}
 
-			OpenConfigurator();
+			if (_configurators[_configuratorIndex].CanOpen())
+				OpenConfigurator();
+			else
+				CleanupConfigurator();
 		}
 
 		/// <summary>
@@ -253,12 +265,23 @@ namespace Dodad.XSplitscreen.Components
 		private void PreviousConfigurator() =>
 			_configuratorIndex = Mathf.Clamp(_configuratorIndex - 1, 0, _configurators.Count - 1);
 
+		private void OnUnloadProfile()
+		{
+			foreach (var config in _configurators)
+				config.OnUnloadProfile();
+		}
+
+		private void OnLoadProfile()
+		{
+			foreach (var config in _configurators)
+				config.OnLoadProfile();
+		}
+
 		/// <summary>
 		/// Handles cancellation input from UI button.
 		/// </summary>
 		private void OnCancel()
 		{
-			Log.Print("SlotOptions.OnCancel");
 			if (IsEditing)
 				_configurators[_configuratorIndex].OnCancel();
 		}
@@ -270,8 +293,6 @@ namespace Dodad.XSplitscreen.Components
 
 		private void OnNavigateIndex(int index)
 		{
-			Log.Print($"SlotOptions::OnNavigateIndex: '{index}', IsEditing = '{IsEditing}'");
-
 			if (!IsEditing)
 			{
 				_configuratorIndex = index;
@@ -286,7 +307,7 @@ namespace Dodad.XSplitscreen.Components
 		}
 
 		/// <summary>
-		/// Handles navigation input from UI buttons.
+		/// Handles vertical navigation input from UI buttons.
 		/// </summary>
 		private void OnNavigate(int direction)
 		{
@@ -312,13 +333,14 @@ namespace Dodad.XSplitscreen.Components
 		/// </summary>
 		internal void OpenConfigurator()
 		{
-			if (IsEditing || _configurators.Count == 0)
+			if (IsEditing || _configurators.Count == 0 || !_configurators[_configuratorIndex].CanOpen())
 				return;
 
 			Slot.SetMessage(null);
 			IsEditing = true;
 			_configurators[_configuratorIndex].Open();
 			Slot.NavigatorCount = _configurators[_configuratorIndex].NavigatorCount;
+			SetNavigationIndex(_configurators[_configuratorIndex].NavigatorIndex);
 		}
 
 		/// <summary>
@@ -361,7 +383,11 @@ namespace Dodad.XSplitscreen.Components
 		private void DisplayOptionName()
 		{
 			if (_configurators.Count == 0) return;
-			SetMessage(_configurators[_configuratorIndex].GetName());
+
+			if (_configurators[_configuratorIndex].CanOpen())
+				SetMessage(_configurators[_configuratorIndex].GetName());
+			else
+				SetMessage(_configurators[_configuratorIndex].GetName(), Color.gray);
 		}
 
 		public void SetMessage(string token) => SetMessage(token, Color.white);
@@ -382,6 +408,19 @@ namespace Dodad.XSplitscreen.Components
 				_titleText.gameObject.SetActive(true);
 				_titleText.GetComponent<TextMeshProUGUI>().color = color;
 			}
+		}
+
+		#endregion
+
+		#region Public Methods
+
+		public T GetConfigurator<T>() where T : OptionConfigurator
+		{
+			foreach (var c in _configurators)
+				if (c is T b)
+					return b;
+
+			return default;
 		}
 
 		#endregion
