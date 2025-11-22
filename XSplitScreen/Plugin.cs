@@ -461,8 +461,7 @@ namespace Dodad.XSplitscreen
 			Patcher.Patch(chbOriginal, prefix: new HarmonyLib.HarmonyMethod(chbPatch));
 
 			// Nameplate color
-
-			var npcOriginal = typeof(RoR2.UI.Nameplate).GetMethod("SetBody", BindingFlags.Instance | BindingFlags.Public);
+			var npcOriginal = typeof(RoR2.UI.Nameplate).GetMethod("Initialize", BindingFlags.Instance | BindingFlags.Public);
 			var npcPatch = typeof(Plugin).GetMethod("Nameplate_SetBody", BindingFlags.Static | BindingFlags.NonPublic);
 
 			Patcher.Patch(npcOriginal, prefix: new HarmonyLib.HarmonyMethod(npcPatch));
