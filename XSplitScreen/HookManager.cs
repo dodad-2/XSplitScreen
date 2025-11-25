@@ -276,8 +276,6 @@ namespace Dodad.XSplitscreen
 
 		private static void UpdateMultiplayerColors(bool isSplitscreenEnabled)
 		{
-			var field = typeof(ColorCatalog).GetField("multiplayerColors", BindingFlags.Static | BindingFlags.NonPublic);
-
 			var multiplayerColors = new Color[4]
 			{
 					new Color32(252, 62, 62, byte.MaxValue),
@@ -296,7 +294,7 @@ namespace Dodad.XSplitscreen
 					multiplayerColors[e] = SplitScreenSettings.GetUserModule<ColorSettingsModule>(localUsers[e].Profile?.fileName ?? string.Empty)?.Color ?? Color.white;
 			}
 
-			field.SetValue(null, multiplayerColors);
+			Plugin.UpdateMultiplayerColors(multiplayerColors);
 		}
 
 		private static MethodInfo CameraRigController_Start_Orig;

@@ -38,6 +38,9 @@ namespace Dodad.XSplitscreen
 
         private static HGButton MainMenuTitleButton;
 
+
+		private static Color[] _multiplayerColors;
+
 		#endregion
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -465,6 +468,12 @@ namespace Dodad.XSplitscreen
 			var npcPatch = typeof(Plugin).GetMethod("Nameplate_SetBody", BindingFlags.Static | BindingFlags.NonPublic);
 
 			Patcher.Patch(npcOriginal, prefix: new HarmonyLib.HarmonyMethod(npcPatch));
+
+			// Patch Get Multiplayer Color
+			var mcOriginal = typeof(RoR2.ColorCatalog).GetMethod("GetMultiplayerColor", BindingFlags.Static | BindingFlags.Public);
+			var mcPatch = typeof(Plugin).GetMethod("ColorCatalog_GetMultiplayerColor", BindingFlags.Static | BindingFlags.NonPublic);
+
+			Patcher.Patch(mcOriginal, prefix: new HarmonyLib.HarmonyMethod(mcPatch));
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
@@ -634,6 +643,30 @@ namespace Dodad.XSplitscreen
 			{
 				__instance.baseColor = RoR2.ColorCatalog.GetMultiplayerColor(__0.master.playerCharacterMasterController.networkUser.localUser.id);
 			}
+		}
+
+		public static Color[] multiplayerColors
+		{
+			get => _multiplayerColors;
+		} 
+
+		public static void UpdateMultiplayerColors(Color[] colors)
+		{
+			_multiplayerColors = colors;
+		}
+
+        private static bool ColorCatalog_GetMultiplayerColor(int playerSlot, ref Color __result)
+		{
+			if (playerSlot >= 0 && playerSlot < multiplayerColors.Length)
+			{
+				 __result = multiplayerColors[playerSlot];
+			}
+			else
+			{
+				__result = Color.black;
+			}
+
+			return false;
 		}
 
 		private static bool CombatHealthBarViewer_SetLayoutHorizontal(RoR2.UI.CombatHealthBarViewer __instance)
