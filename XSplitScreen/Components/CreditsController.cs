@@ -182,6 +182,7 @@ namespace Dodad.XSplitscreen.Components
 			AddContributor("Art", "Claymaver (https://linktr.ee/claymaver)");
 			AddContributor("Art", "dodad");
 			AddContributor("Programming", "Narl");
+			AddContributor("Programming", "AncientHeroX");
 			AddContributor("Programming", "dodad");
 			AddContributor("Technical Support", "iDeathHD");
 			AddContributor("Technical Support", "Many users in the Risk of Rain 2 Modding Discord");
