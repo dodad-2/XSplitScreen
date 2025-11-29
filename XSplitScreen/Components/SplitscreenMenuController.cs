@@ -34,6 +34,7 @@ namespace Dodad.XSplitscreen.Components
 		private static HGButton multiMonitorButton;
 		private static HGButton backButton;
 		private static HGButton creditsButton;
+		private static HGButton gameModeButton;
 		private static Player mainPlayer;
 		private static LocalUserSlot.InputBank mainInput;
 		private static CanvasGroup notificationGroup;
@@ -392,7 +393,17 @@ namespace Dodad.XSplitscreen.Components
 				Application.OpenURL("https://discord.gg/maHhJSv62G");
 			});
 
-			// Multi-monitor button
+			var gameModeButtonTemplate = MainMenuController.instance.multiplayerMenuScreen.transform.Find("Inner90/MainMultiplayerMenu/GenericMenuButtonPanel/JuicePanel/GameMode");
+			gameModeButton = Instantiate((gameModeButtonTemplate.gameObject)).GetComponent<HGButton>();
+			gameModeButton.transform.SetParent(discordButton.transform.parent);
+			gameModeButton.transform.localScale = Vector3.one;
+			gameModeButton.transform.SetSiblingIndex(0);
+			gameModeButton.name = "GameMode";
+			gameModeButton.hoverToken = "XSS_OPTION_MMM_HOVER";
+			gameModeButton.GetComponent<MPEventSystemLocator>().Awake();
+			Destroy(gameModeButton.transform.Find("Canvas").gameObject);
+			
+			
 			multiMonitorButton = Instantiate(discordButton.gameObject).GetComponent<HGButton>();
 			multiMonitorButton.transform.SetParent(discordButton.transform.parent);
 			multiMonitorButton.transform.localScale = Vector3.one;
@@ -642,7 +653,10 @@ namespace Dodad.XSplitscreen.Components
 			SplitscreenUserManager.InitializeUsers(assignments);
 
 			AllowLoad = false;
-			SplitscreenUserManager.EnableSplitscreen();
+			
+			CarouselController carousel = gameModeButton.GetComponent<CarouselController>();
+			var gamemodeValue= carousel.GetCurrentValue();
+			SplitscreenUserManager.EnableSplitscreen(gamemodeValue);
 		}
 
 		public static void PrintDebugInfo()

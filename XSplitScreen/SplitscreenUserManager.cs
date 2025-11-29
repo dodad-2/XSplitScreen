@@ -131,7 +131,7 @@ namespace Dodad.XSplitscreen
 		/// <summary>
 		/// Enables splitscreen mode by applying runtime hooks
 		/// </summary>
-		public static void EnableSplitscreen()
+		public static void EnableSplitscreen(string gamemode)
 		{
 			if (isSplitscreenEnabled || localUsers.Count <= 1)
 			{
@@ -149,7 +149,7 @@ namespace Dodad.XSplitscreen
 			RoR2Application.SetIsInLocalMultiplayer(true);
 			LoadLocalUsers();
 			OnStateChange?.Invoke(true);
-			TransitionToLobby();
+			TransitionToLobby(gamemode);
 		}
 
 		/// <summary>
@@ -168,14 +168,14 @@ namespace Dodad.XSplitscreen
 			OnStateChange?.Invoke(false);
 		}
 
-		private static void TransitionToLobby()
+		private static void TransitionToLobby(string gamemode)
 		{
 			//RoR2.Console.instance.SubmitCmd(null, "transition_command \"gamemode ClassicRun; host 0;\"");
 			if (OnlineMode)
 				MainMenuController.instance.SetDesiredMenuScreen(MainMenuController.instance.multiplayerMenuScreen);
 			//	PlatformSystems.lobbyManager.EnterGameButtonPressed();
 			else
-				RoR2.Console.instance.SubmitCmd(null, "transition_command \"gamemode ClassicRun; host 0;\"");
+				RoR2.Console.instance.SubmitCmd(null, $"transition_command \"gamemode {gamemode}; host 0;\"");
 		}
 
 		private static void LoadLocalUsers()
