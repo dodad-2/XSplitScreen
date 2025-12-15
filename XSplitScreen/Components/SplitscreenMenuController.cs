@@ -403,7 +403,6 @@ namespace Dodad.XSplitscreen.Components
 			gameModeButton.GetComponent<MPEventSystemLocator>().Awake();
 			Destroy(gameModeButton.transform.Find("Canvas").gameObject);
 			
-			
 			multiMonitorButton = Instantiate(discordButton.gameObject).GetComponent<HGButton>();
 			multiMonitorButton.transform.SetParent(discordButton.transform.parent);
 			multiMonitorButton.transform.localScale = Vector3.one;

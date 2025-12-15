@@ -29,6 +29,7 @@ namespace Dodad.XSplitscreen
 			UpdateChatHooks(state);
 			UpdateSubscriptions(state);
 			UpdateRunCameraManager(state);
+			UpdatePauseScreenBehaviourHook(state);
 		}
 
 		private static void ResizePlayerCount(bool state)
@@ -458,6 +459,35 @@ namespace Dodad.XSplitscreen
 					Log.Print($"Rect[{e}][{r}] -> {rects[e][r]}");
 				}
 			}
+		}
+
+		private static MethodInfo PauseStopController_allowMultiplayerPause_Orig;
+		private static MethodInfo PauseStopController_allowMultiplayerPause_Patch;
+		private static void UpdatePauseScreenBehaviourHook(bool isSplitscreenEnabled)
+		{
+			PauseStopController_allowMultiplayerPause_Orig ??= typeof(RoR2.PauseStopController)
+	.GetProperty("allowMultiplayerPause", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+	?.GetSetMethod(true);
+			PauseStopController_allowMultiplayerPause_Patch ??= typeof(HookManager).GetMethod("PauseStopController_allowMultiplayerPause", BindingFlags.Static | BindingFlags.NonPublic);
+
+			if (PauseStopController_allowMultiplayerPause_Orig == null)
+				return;
+
+			if (isSplitscreenEnabled)
+			{
+				Plugin.Patcher.Patch(PauseStopController_allowMultiplayerPause_Orig, prefix: new HarmonyLib.HarmonyMethod(PauseStopController_allowMultiplayerPause_Patch));
+			}
+			else
+			{
+				Plugin.Patcher.Unpatch(PauseStopController_allowMultiplayerPause_Orig, PauseStopController_allowMultiplayerPause_Patch);
+			}
+		}
+
+		private static bool PauseStopController_allowMultiplayerPause(PauseStopController __instance, bool __0)
+		{
+			__instance.Network_allowMultiplayerPause = !SplitscreenUserManager.OnlineMode || __0;
+
+			return false;
 		}
 	}
 }
