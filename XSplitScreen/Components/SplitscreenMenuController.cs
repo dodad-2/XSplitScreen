@@ -375,9 +375,6 @@ namespace Dodad.XSplitscreen.Components
 			menuButtonPanelRect.offsetMin = new Vector2(0, 160);
 			menuButtonPanelRect.transform.localScale = Vector3.one;
 
-			// Remove extra buttons
-			Destroy(menuButtonPanelRect.Find("JuicePanel/GenericMenuButton (Weekly)").gameObject);
-			Destroy(menuButtonPanelRect.Find("JuicePanel/GenericMenuButton (Eclipse)").gameObject);
 
 			// Discord button setup
 			discordButton = menuButtonPanelRect.Find("JuicePanel/GenericMenuButton (Infinite Tower)").GetComponent<HGButton>();
@@ -393,13 +390,23 @@ namespace Dodad.XSplitscreen.Components
 				Application.OpenURL("https://discord.gg/maHhJSv62G");
 			});
 
+			// Remove extra buttons
+			foreach (Transform child in menuButtonPanelRect.Find("JuicePanel"))
+			{
+				if(child.name == "Discord" || child.name == "DescriptionPanel, Naked")
+					continue;
+				Log.Print($"Destroying extra button: {child.name}", Log.ELogChannel.Debug);
+				Destroy(child.gameObject);
+			}
+
 			var gameModeButtonTemplate = MainMenuController.instance.multiplayerMenuScreen.transform.Find("Inner90/MainMultiplayerMenu/GenericMenuButtonPanel/JuicePanel/GameMode");
 			gameModeButton = Instantiate((gameModeButtonTemplate.gameObject)).GetComponent<HGButton>();
+			gameModeButton.hoverLanguageTextMeshController = menuButtonPanelRect.Find("JuicePanel/DescriptionPanel, Naked/ContentSizeFitter/DescriptionText").GetComponent<LanguageTextMeshController>();
 			gameModeButton.transform.SetParent(discordButton.transform.parent);
 			gameModeButton.transform.localScale = Vector3.one;
 			gameModeButton.transform.SetSiblingIndex(0);
 			gameModeButton.name = "GameMode";
-			gameModeButton.hoverToken = "XSS_OPTION_MMM_HOVER";
+			gameModeButton.hoverToken = "XSS_OPTION_GM_HOVER";
 			gameModeButton.GetComponent<MPEventSystemLocator>().Awake();
 			Destroy(gameModeButton.transform.Find("Canvas").gameObject);
 			
