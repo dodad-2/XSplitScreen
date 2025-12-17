@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using MonoMod.Cil;
 
 namespace Dodad.XSplitscreen.Components
 {
@@ -29,6 +30,8 @@ namespace Dodad.XSplitscreen.Components
 			get => AllowLoad;
 		}
 
+		public CarouselController gameModePicker;
+
 		// Buttons and player input references
 		private static HGButton discordButton;
 		private static HGButton multiMonitorButton;
@@ -38,6 +41,7 @@ namespace Dodad.XSplitscreen.Components
 		private static Player mainPlayer;
 		private static LocalUserSlot.InputBank mainInput;
 		private static CanvasGroup notificationGroup;
+
 
 		internal int monitorId;
 
@@ -311,8 +315,43 @@ namespace Dodad.XSplitscreen.Components
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
+		private void BuildGameModeChoices()
+		{
+            List<CarouselController.Choice> list = new List<CarouselController.Choice>();
+            List<string> list2 = gameModePicker.choices.Select((CarouselController.Choice choice) => choice.suboptionDisplayToken).ToList();
+            for (GameModeIndex gameModeIndex = (GameModeIndex)0; (int)gameModeIndex < GameModeCatalog.gameModeCount; gameModeIndex++)
+            {
+                Run gameModePrefabComponent = GameModeCatalog.GetGameModePrefabComponent(gameModeIndex);
+                RoR2.ExpansionManagement.ExpansionRequirementComponent component = gameModePrefabComponent.GetComponent<RoR2.ExpansionManagement.ExpansionRequirementComponent>();
+                if (gameModePrefabComponent != null && gameModePrefabComponent.userPickable && (!component || !component.requiredExpansion || RoR2.EntitlementManagement.EntitlementManager.localUserEntitlementTracker.AnyUserHasEntitlement(component.requiredExpansion.requiredEntitlement)))
+                {
+                    list.Add(new CarouselController.Choice
+                    {
+                        suboptionDisplayToken = gameModePrefabComponent.nameToken,
+                        convarValue = gameModePrefabComponent.name
+                    });
+                }
+            }
+            gameModePicker.choices = list.ToArray();
+            gameModePicker.gameObject.SetActive(list.Count > 1);
+            string text = Console.instance.FindConVar("gamemode").GetString();
+            bool flag = false;
+            for (int num = 0; num < list.Count; num++)
+            {
+                if (list[num].convarValue == text)
+                {
+                    flag = true;
+                    break;
+                }
+            }
+            if (list.Count == 1 || !flag)
+            {
+                Debug.LogFormat("Invalid gamemode {0} detected. Reverting to ClassicRun.", text);
+                gameModePicker.SubmitSetting(list[0].convarValue);
+            }
+        }
 
-		private void CreateUI()
+        private void CreateUI()
 		{
 			var mainPanel = transform.Find("Main Panel");
 			var localUserPanel = mainPanel.Find("User Panel");
@@ -375,7 +414,6 @@ namespace Dodad.XSplitscreen.Components
 			menuButtonPanelRect.offsetMin = new Vector2(0, 160);
 			menuButtonPanelRect.transform.localScale = Vector3.one;
 
-
 			// Discord button setup
 			discordButton = menuButtonPanelRect.Find("JuicePanel/GenericMenuButton (Infinite Tower)").GetComponent<HGButton>();
 			discordButton.name = "Discord";
@@ -389,6 +427,7 @@ namespace Dodad.XSplitscreen.Components
 			{
 				Application.OpenURL("https://discord.gg/maHhJSv62G");
 			});
+
 
 			// Remove extra buttons
 			foreach (Transform child in menuButtonPanelRect.Find("JuicePanel"))
@@ -407,6 +446,10 @@ namespace Dodad.XSplitscreen.Components
 			gameModeButton.transform.SetSiblingIndex(0);
 			gameModeButton.name = "GameMode";
 			gameModeButton.hoverToken = "XSS_OPTION_GM_HOVER";
+
+			gameModePicker = gameModeButton.GetComponent<CarouselController>();
+			BuildGameModeChoices();
+
 			gameModeButton.GetComponent<MPEventSystemLocator>().Awake();
 			Destroy(gameModeButton.transform.Find("Canvas").gameObject);
 			
