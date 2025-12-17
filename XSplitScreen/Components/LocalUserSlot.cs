@@ -678,7 +678,7 @@ namespace Dodad.XSplitscreen.Components
 				LeftRightDelta = player.GetAxis(0);
 				UpDownDelta = player.GetAxis(1);
 
-				bool southValue = player.GetButtonDown(4);
+				bool southValue = player.GetButtonDown(14);
 				bool eastValue = player.GetButtonDown(15);
 				bool lbValue = player.GetButtonDown(9);
 				bool rbValue = player.GetButtonDown(10);
