@@ -202,6 +202,7 @@ namespace Dodad.XSplitscreen
 				{ "XSS_PRESS_START", "- press start -" },
 				{ "XSS_CONFIG_PROFILE", "Guest" },
 				{ "XSS_CONFIG_COLOR", "Color" },
+				{ "XSS_OPTION_GM_HOVER", "Select Gamemode" },
 				{ "XSS_OPTION_MMM", "Multi-Monitor Mode" },
 				{ "XSS_OPTION_MMM_HOVER", "Enable Multi-Monitor Mode (cannot be disabled)" },
 				{ "XSS_TRAILS", "Trails" },
