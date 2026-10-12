@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	Copy this file to XSplitScreen.csproj.user (gitignored) and set your own path.
+	After every build, XSplitScreen.dll (and .pdb) is copied into this folder.
+
+	Examples:
+	  r2modman:          %APPDATA%\r2modmanPlus-local\RiskOfRain2\profiles\<Profile>\BepInEx\plugins\dodad-XSplitScreen
+	  Thunderstore app:  %APPDATA%\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\<Profile>\BepInEx\plugins\dodad-XSplitScreen
+-->
+<Project>
+	<PropertyGroup>
+		<PluginDeployDir>C:\path\to\profile\BepInEx\plugins\dodad-XSplitScreen</PluginDeployDir>
+	</PropertyGroup>
+</Project>

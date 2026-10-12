@@ -211,7 +211,8 @@ namespace Dodad.XSplitscreen
 		/// <param name="button"></param>
 		internal static void ClearHGButton(HGButton button, bool clearLanguageController = true)
 		{
-			GameObject.Destroy(button.gameObject.GetComponent<DisableIfNoExpansion>());
+			// DisableIfNoExpansion is [Obsolete(error: true)] in current game builds, so look it up by name
+			GameObject.Destroy(button.gameObject.GetComponent("DisableIfNoExpansion"));
 
 			button.hoverToken = "XL_UNSET";
 			button.requiredTopLayer = null;

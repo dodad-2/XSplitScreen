@@ -400,7 +400,7 @@ namespace Dodad.XSplitscreen.Components
 				backButton.OnClickCustom();
 			});
 
-			Destroy(backButton.GetComponent<DisableIfNoExpansion>());
+			Destroy(backButton.GetComponent("DisableIfNoExpansion"));
 			backButton.GetComponent<MPEventSystemLocator>().Awake();
 
 			var backJuice = backButton.transform.parent.GetComponent<UIJuice>();
