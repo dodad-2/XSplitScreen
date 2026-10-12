@@ -211,8 +211,7 @@ namespace Dodad.XSplitscreen
 		/// <param name="button"></param>
 		internal static void ClearHGButton(HGButton button, bool clearLanguageController = true)
 		{
-			// DisableIfNoExpansion is [Obsolete(error: true)] in current game builds, so look it up by name
-			GameObject.Destroy(button.gameObject.GetComponent("DisableIfNoExpansion"));
+			RemoveEntitlementGates(button.gameObject);
 
 			button.hoverToken = "XL_UNSET";
 			button.requiredTopLayer = null;
@@ -236,6 +235,34 @@ namespace Dodad.XSplitscreen
 
 			if (langController)
 				langController.token = "XL_UNSET";
+		}
+
+		//-----------------------------------------------------------------------------------------------------------
+
+		/// <summary>
+		/// Remove the components that hide UI for players who don't own a DLC. Cloned menu elements
+		/// keep them, so without this they vanish for players without the DLC they were copied from.
+		/// Removed immediately because Destroy is deferred: anything cloned in the same frame would
+		/// still copy the component.
+		/// </summary>
+		/// <param name="root">Root of the cloned hierarchy (children are included)</param>
+		internal static void RemoveEntitlementGates(GameObject root)
+		{
+			if (root == null)
+				return;
+
+			foreach (var component in root.GetComponentsInChildren<MonoBehaviour>(true))
+			{
+				if (component == null)
+					continue;
+
+				// DisableIfNoExpansion is [Obsolete(error: true)] in current game builds, so match it by name
+				if (component is GameObjectEntitlementActivator || component.GetType().Name == "DisableIfNoExpansion")
+				{
+					Log.Print($"Removed DLC gate '{component.GetType().Name}' from '{component.name}' (cloned from '{root.name}')");
+					GameObject.DestroyImmediate(component);
+				}
+			}
 		}
 
 		//-----------------------------------------------------------------------------------------------------------
