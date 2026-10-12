@@ -1,4 +1,4 @@
-using BepInEx;
+ï»¿using BepInEx;
 using BepInEx.Configuration;
 using R2API.Utils;
 using System;
@@ -218,14 +218,14 @@ namespace Dodad.XSplitscreen
 			string ptBrKey = "pt-br";
 			tokens.Add(ptBrKey, new StringDictionary
 			{
-				{ "XSS_NAME_HOVER", "Modificar as configurações da tela-dividida." },
-				{ "XSS_OPTION_DISCORD_HOVER", "Entre para suporte, dar feedback ou ver atualizações" },
+				{ "XSS_NAME_HOVER", "Modificar as configuraÃ§Ãµes da tela-dividida." },
+				{ "XSS_OPTION_DISCORD_HOVER", "Entre para suporte, dar feedback ou ver atualizaÃ§Ãµes" },
 				{ "XSS_PRESS_START_KBM", "- clique ou pressione start -" },
 				{ "XSS_PRESS_START", "- pressione start -" },
 				{ "XSS_CONFIG_PROFILE", "Guest" },
 				{ "XSS_CONFIG_COLOR", "Cor" },
 				{ "XSS_OPTION_MMM", "Modo Multi-Monitor" },
-				{ "XSS_OPTION_MMM_HOVER", "Ativar o Modo Multi-Monitor (não pode ser desativado)" },
+				{ "XSS_OPTION_MMM_HOVER", "Ativar o Modo Multi-Monitor (nÃ£o pode ser desativado)" },
 				{ "XSS_TRAILS", "Trails" },
 				{ "XSS_SELECT_SCREEN", "Select Screen" },
 				{ "XSS_READY", "Ready" },
@@ -240,14 +240,14 @@ namespace Dodad.XSplitscreen
 			string frKey = "fr";
 			tokens.Add(frKey, new StringDictionary
 			{
-				{ "XSS_NAME_HOVER", "Modifier les paramètres de splitscreen." },
-				{ "XSS_OPTION_DISCORD_HOVER", "Rejoignez nous pour du support, du feedback ou des mises à jour" },
+				{ "XSS_NAME_HOVER", "Modifier les paramÃ¨tres de splitscreen." },
+				{ "XSS_OPTION_DISCORD_HOVER", "Rejoignez nous pour du support, du feedback ou des mises Ã  jour" },
 				{ "XSS_PRESS_START_KBM", "- cliquez ou appuyez sur start -" },
 				{ "XSS_PRESS_START", "- appuyez sur start -" },
 				{ "XSS_CONFIG_PROFILE", "Guest" },
 				{ "XSS_CONFIG_COLOR", "Couleur" },
-				{ "XSS_OPTION_MMM", "Mode Multi-Écrans" },
-				{ "XSS_OPTION_MMM_HOVER", "Activer le Mode Multi-Écrans (ne peut pas être désactivé)" },
+				{ "XSS_OPTION_MMM", "Mode Multi-Ã‰crans" },
+				{ "XSS_OPTION_MMM_HOVER", "Activer le Mode Multi-Ã‰crans (ne peut pas Ãªtre dÃ©sactivÃ©)" },
 				{ "XSS_TRAILS", "Trails" },
 				{ "XSS_SELECT_SCREEN", "Select Screen" },
 				{ "XSS_READY", "Ready" },
