@@ -16,7 +16,7 @@ using UnityEngine.EventSystems;
 
 namespace Dodad.XSplitscreen
 {
-    [BepInPlugin(PluginGUID, PluginName, "4.0.9")]
+    [BepInPlugin(PluginGUID, PluginName, "4.0.10")]
     [NetworkCompatibility(CompatibilityLevel.NoNeedForSync, VersionStrictness.DifferentModVersionsAreOk)]
 	[BepInDependency(LanguageAPI.PluginGUID, BepInDependency.DependencyFlags.HardDependency)]
 	public class Plugin : BaseUnityPlugin
